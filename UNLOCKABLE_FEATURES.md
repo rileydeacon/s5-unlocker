@@ -17,7 +17,8 @@ workflow over Panasonic temporary Service Mode USB (`04DA:2370`, `op 0x9B` read 
 | :--- | :--- | :--- |
 | **6K 3:2 Open Gate 23.98p MOV** | `qid 0x00ED` | `5952×3968` (full 3:2 sensor), 23.98p, HEVC Main 10 4:2:0 10-bit, 200 Mbps, 48 kHz stereo PCM audio, timecode. Appears natively in **Rec Quality (MOV)**, updates live-view `6K` badge, plays back natively in-camera, **no 30-min cap**. |
 | **5.9K 16:9 23.98p MOV** | `qid 0x00F1` | `5888×3312` (full-frame 16:9), 23.98p, HEVC Main 10 4:2:0 10-bit, 200 Mbps. Appears natively in **Rec Quality (MOV)**, updates live-view `5.9K` badge, **no 30-min cap**. |
-| **5.9K 16:9 29.97p MOV** | `qid 0x00F4` | `5888×3312`, 29.97p, HEVC Main 10 4:2:0 10-bit, ~194 Mbps (`P1118468.MOV` verified: 231.84 MiB, 10.010 s, 300 frames, PCM audio, timecode, **no 30-min cap**). |
+| **5.9K 16:9 29.97p MOV** | `qid 0x00F4` | `5888×3312`, 29.97p, HEVC Main 10 4:2:0 10-bit, ~194 Mbps (native MOV menu in **v1.3**, PCM audio, timecode, **no 30-min cap**). |
+| **5.9K 16:9 25.00p MOV (PAL)** | `qid 0x00F3` | `5888×3312`, 25.00p (50.00 Hz PAL), HEVC Main 10 4:2:0 10-bit, 200 Mbps (native PAL MOV menu in **v1.3**, **no 30-min cap**). |
 | **Unlimited Recording (All Limited Modes)** | `0x868261B6: 0x4628 → 0x2000` | Removes both the **30-minute (`0x708`)** and **15-minute (`0x384`)** artificial recording caps across all 4K, C4K, 4K-A 10-bit, 60p, and VFR modes. Card capacity and hardware thermal protection remain intact. |
 | **Power-Switch Persistence (Suspend-to-RAM)** | `0x87089614`–`0x8708962C` | Patching the master ROM-in-RAM MOV template alongside `0x86F15E30`, `0x08A68B6C`, `0x08A6836C`, and `0x868261B6` keeps all unlocked modes + unlimited recording active across Power-Switch OFF/ON until battery removal. |
 
@@ -43,8 +44,7 @@ native menu slots:
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **6K 3:2 Open Gate 24.00p** | `0x00EE` | `5952×3968` | 3:2 | 24.00p (True 24p) | HEVC 4:2:0 10-bit 200M | Needs quick live record test in 59.94 Hz mode |
 | **5.9K 16:9 24.00p** | `0x00F2` | `5888×3312` | 16:9 | 24.00p (True 24p) | HEVC 4:2:0 10-bit 200M | Same 2-core HEVC pipeline as `0x00F1`/`0x00F4` |
-| **5.9K 16:9 25.00p (PAL)** | `0x00F3` | `5888×3312` | 16:9 | 25.00p | HEVC 4:2:0 10-bit 200M | For 50.00 Hz PAL system frequency (`0x86F15E9A`) |
-| **5.4K 3:2 Open Gate 25.00p** | `0x00EF` | `5376×3584` | 3:2 | 25.00p | HEVC 4:2:0 10-bit 200M | PAL Open Gate; **avoid `0x00F0` (29.97p)** which stalled on record in 59.94 Hz |
+| **5.4K 3:2 Open Gate 25.00p / 29.97p** | `0x00EF` / `0x00F0` | `5376×3584` | 3:2 | 25p / 29.97p | **Stalls on record** (`res=11` S1H-only pipeline omitted on S5; **do not enable**) |
 
 ### 400 Mbps 10-bit 4:2:2 ALL-Intra MOV Modes
 | Mode | QID | Resolution | Frame Rate | Codec / Bitrate | Notes |

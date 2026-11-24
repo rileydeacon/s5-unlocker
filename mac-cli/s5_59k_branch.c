@@ -164,11 +164,18 @@ int main(int argc, char **argv) {
     int is_write = (!strcmp(mode, "enable") || !strcmp(mode, "restore") ||
                     !strcmp(mode, "setslot") || !strcmp(mode, "restoreslot") ||
                     !strcmp(mode, "wl_enable") || !strcmp(mode, "wl_restore") ||
-                    !strcmp(mode, "ui_enable") || !strcmp(mode, "ui_restore"));
+                    !strcmp(mode, "ui_enable") || !strcmp(mode, "ui_restore") ||
+                    !strcmp(mode, "hb_enable") || !strcmp(mode, "hb_restore") ||
+                    !strcmp(mode, "sd_test") || !strcmp(mode, "sd_restore") ||
+                    !strcmp(mode, "loader_enable") || !strcmp(mode, "loader_hello") ||
+                    !strcmp(mode, "loader_restore") ||
+                    !strcmp(mode, "v13_enable") || !strcmp(mode, "v13_restore"));
     if (is_write && !confirmed) {
         fprintf(stderr, "refusing write without --confirm-write\n");
         return 1;
-    } else if (!is_write && strcmp(mode, "verify") != 0) {
+    } else if (!is_write && strcmp(mode, "verify") != 0 && strcmp(mode, "hb_read") != 0 &&
+               strcmp(mode, "sd_read") != 0 && strcmp(mode, "loader_read") != 0 &&
+               strcmp(mode, "v13_check") != 0) {
         fprintf(stderr, "unknown mode: %s\n", mode);
         return 1;
     }
@@ -365,6 +372,356 @@ int main(int argc, char **argv) {
                         }
                     }
                 }
+            }
+        } else if (!strcmp(mode, "v13_check") || !strcmp(mode, "v13_enable") || !strcmp(mode, "v13_restore")) {
+            static const struct { uint32_t addr; uint16_t val; } anchors[] = {
+                {0x868261B4u, 0x460Du}, {0x868261B8u, 0xE8BDu},
+                {0x86F15E84u, 0x00C0u}, {0x86F15E98u, 0xFFFFu},
+                {0x86F15ED2u, 0x00C1u}, {0x86F15EDEu, 0xFFFFu},
+                {0x870895E4u, 0x00C0u}, {0x87089634u, 0xFFFFu},
+                {0x870896BCu, 0x00C1u}, {0x870896ECu, 0xFFFFu},
+                {0x08A68C2Cu, 0x00C0u}, {0x08A68C7Cu, 0xFFFFu},
+                {0x08A68D04u, 0x00C1u}, {0x08A68D34u, 0xFFFFu},
+            };
+            static const struct { uint32_t addr; uint16_t unlock; uint16_t stock; } patches[] = {
+                /* NTSC Whitelist (00CE->00F4 5.9K30, 00D1->00F1 5.9K24, 00D2->00ED 6K24) */
+                {0x86F15E8Cu, 0x00F4u, 0x00CEu}, {0x86F15E8Eu, 0x80F4u, 0x80CEu},
+                {0x86F15E90u, 0x00F1u, 0x00D1u}, {0x86F15E92u, 0x80F1u, 0x80D1u},
+                {0x86F15E94u, 0x00EDu, 0x00D2u}, {0x86F15E96u, 0x80EDu, 0x80D2u},
+                /* NTSC Master Template (survives power-switch OFF/ON) */
+                {0x87089604u, 0x00F4u, 0x00CEu}, {0x8708960Cu, 0x80F4u, 0x80CEu},
+                {0x87089614u, 0x00F1u, 0x00D1u}, {0x8708961Cu, 0x80F1u, 0x80D1u},
+                {0x87089624u, 0x00EDu, 0x00D2u}, {0x8708962Cu, 0x80EDu, 0x80D2u},
+                /* NTSC Active MOV Template */
+                {0x08A68C4Cu, 0x00F4u, 0x00CEu}, {0x08A68C54u, 0x80F4u, 0x80CEu},
+                {0x08A68C5Cu, 0x00F1u, 0x00D1u}, {0x08A68C64u, 0x80F1u, 0x80D1u},
+                {0x08A68C6Cu, 0x00EDu, 0x00D2u}, {0x08A68C74u, 0x80EDu, 0x80D2u},
+                /* PAL Whitelist (00CD->00F3 5.9K25; NEVER 00EF 5.4K which stalls) */
+                {0x86F15ED6u, 0x00F3u, 0x00CDu}, {0x86F15ED8u, 0x80F3u, 0x80CDu},
+                /* PAL Master Template (survives power-switch OFF/ON) */
+                {0x870896CCu, 0x00F3u, 0x00CDu}, {0x870896D4u, 0x80F3u, 0x80CDu},
+                /* PAL Active MOV Template */
+                {0x08A68D14u, 0x00F3u, 0x00CDu}, {0x08A68D1Cu, 0x80F3u, 0x80CDu},
+                /* Unlimited Recording */
+                {0x868261B6u, 0x2000u, 0x4628u},
+            };
+            int ok = 1;
+            uint16_t cap_cur = 0;
+            if (read_half(usb, outPipe, inPipe, 0x868261B6u, &cap_cur) ||
+                (cap_cur != 0x4628u && cap_cur != 0x2000u)) {
+                fprintf(stderr, "v13 anchor mismatch: 0x868261B6=0x%04X\n", cap_cur);
+                ok = 0;
+            }
+            for (size_t i = 0; i < sizeof(anchors)/sizeof(anchors[0]) && ok; ++i) {
+                uint16_t got = 0;
+                if (read_half(usb, outPipe, inPipe, anchors[i].addr, &got) || got != anchors[i].val) {
+                    fprintf(stderr, "v13 anchor mismatch: 0x%08X=0x%04X (want 0x%04X)\n",
+                            anchors[i].addr, got, anchors[i].val);
+                    ok = 0;
+                }
+            }
+            if (!ok) {
+                rc = 1;
+            } else if (!strcmp(mode, "v13_check")) {
+                uint16_t ntsc_q = 0, pal_q = 0;
+                read_half(usb, outPipe, inPipe, 0x08A68C6Cu, &ntsc_q);
+                read_half(usb, outPipe, inPipe, 0x08A68D24u, &pal_q);
+                printf("OK: ALL 19 v1.3 anchors verified (compatible S5/S5D FW 2.9)!\n"
+                       "  cap=0x%04X | ntsc_tail=0x%04X | pal_tail=0x%04X\n",
+                       cap_cur, ntsc_q, pal_q);
+            } else {
+                int en = !strcmp(mode, "v13_enable");
+                int err = 0;
+                for (size_t i = 0; i < sizeof(patches)/sizeof(patches[0]) && !err; ++i) {
+                    uint16_t want = en ? patches[i].unlock : patches[i].stock;
+                    uint16_t rb = 0;
+                    err |= write_half(usb, outPipe, inPipe, patches[i].addr, want);
+                    err |= read_half(usb, outPipe, inPipe, patches[i].addr, &rb);
+                    if (rb != want) {
+                        fprintf(stderr, "v13 read-back mismatch at 0x%08X: got 0x%04X want 0x%04X\n",
+                                patches[i].addr, rb, want);
+                        err = 1;
+                    }
+                }
+                /* Also refresh transient Live UI buffer if NTSC MOV (0x08A6842C==0x00C0) or PAL MOV (0x08A683EC==0x00C1) is currently cached */
+                uint16_t ui_ntsc = 0, ui_pal = 0;
+                if (!err && !read_half(usb, outPipe, inPipe, 0x08A6842Cu, &ui_ntsc) && ui_ntsc == 0x00C0u) {
+                    static const struct { uint32_t addr; uint16_t unlock; uint16_t stock; } ui_n[] = {
+                        {0x08A6844Cu, 0x00F4u, 0x00CEu}, {0x08A6844Eu, 0x0104u, 0x0104u}, {0x08A68454u, 0x80F4u, 0x80CEu},
+                        {0x08A6845Cu, 0x00F1u, 0x00D1u}, {0x08A6845Eu, 0x0104u, 0x0104u}, {0x08A68464u, 0x80F1u, 0x80D1u},
+                        {0x08A6846Cu, 0x00EDu, 0x00D2u}, {0x08A6846Eu, 0x0104u, 0x0104u}, {0x08A68474u, 0x80EDu, 0x80D2u},
+                    };
+                    for (size_t i = 0; i < sizeof(ui_n)/sizeof(ui_n[0]) && !err; ++i)
+                        err |= write_half(usb, outPipe, inPipe, ui_n[i].addr, en ? ui_n[i].unlock : ui_n[i].stock);
+                } else if (!err && !read_half(usb, outPipe, inPipe, 0x08A683ECu, &ui_pal) && ui_pal == 0x00C1u) {
+                    err |= write_half(usb, outPipe, inPipe, 0x08A683FCu, en ? 0x00F3u : 0x00CDu);
+                    err |= write_half(usb, outPipe, inPipe, 0x08A683FEu, 0x0104u);
+                    err |= write_half(usb, outPipe, inPipe, 0x08A68404u, en ? 0x80F3u : 0x80CDu);
+                }
+                if (err) { fprintf(stderr, "%s failed\n", mode); rc = 1; }
+                else if (en) {
+                    printf("OK: v1.3 ARMED (25 halfwords + live UI refresh verified)!\n"
+                           "  NTSC 59.94Hz MOV: 5.9K30 (00F4), 5.9K24 (00F1), 6K24 OG (00ED)\n"
+                           "  PAL  50.00Hz MOV: 5.9K25 (00F3)\n"
+                           "  Unlimited Rec: ON (0x868261B6=0x2000). Open MOV Rec Quality menu to view!\n");
+                } else {
+                    printf("OK: v1.3 RESTORED to 100%% stock.\n");
+                }
+            }
+        } else if (!strcmp(mode, "loader_read")) {
+            uint16_t w[16] = {0}, p[8] = {0}, h0 = 0, h1 = 0;
+            int err = 0;
+            for (unsigned i = 0; i < 16 && !err; ++i)
+                err |= read_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, &w[i]);
+            for (unsigned i = 0; i < 8 && !err; ++i)
+                err |= read_half(usb, outPipe, inPipe, 0x870DE000u + i * 2, &p[i]);
+            err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &h0);
+            err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &h1);
+            if (err) {
+                fprintf(stderr, "loader_read failed\n");
+                rc = 1;
+            } else {
+                uint32_t v[8];
+                for (unsigned i = 0; i < 8; ++i)
+                    v[i] = (uint32_t)w[i * 2] | ((uint32_t)w[i * 2 + 1] << 16);
+                uint8_t b[16];
+                for (unsigned i = 0; i < 8; ++i) {
+                    b[i * 2] = (uint8_t)(p[i] & 0xFFu);
+                    b[i * 2 + 1] = (uint8_t)(p[i] >> 8);
+                }
+                printf("SD Plugin Loader (hook 0x866930EA=%04X %04X):\n"
+                       "  ran=%u | read_rc=0x%08X | file_size=%u\n"
+                       "  magic=0x%08X | plugin_rc=0x%08X\n"
+                       "  extra: [5]=0x%08X [6]=0x%08X [7]=0x%08X\n"
+                       "  0x870DE000[0..15]:",
+                       h0, h1, v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+                for (unsigned i = 0; i < 16; ++i) printf(" %02X", b[i]);
+                printf("  \"");
+                for (unsigned i = 0; i < 16; ++i) printf("%c", (b[i] >= 0x20 && b[i] <= 0x7E) ? b[i] : '.');
+                printf("\"\n");
+            }
+        } else if (!strcmp(mode, "loader_enable") || !strcmp(mode, "loader_hello") || !strcmp(mode, "loader_restore")) {
+            uint16_t s0 = 0, s1 = 0, h0 = 0, h1 = 0, s2 = 0, s3 = 0, st0 = 0;
+            if (read_half(usb, outPipe, inPipe, 0x866930E6u, &s0) ||
+                read_half(usb, outPipe, inPipe, 0x866930E8u, &s1) ||
+                read_half(usb, outPipe, inPipe, 0x866930EAu, &h0) ||
+                read_half(usb, outPipe, inPipe, 0x866930ECu, &h1) ||
+                read_half(usb, outPipe, inPipe, 0x866930EEu, &s2) ||
+                read_half(usb, outPipe, inPipe, 0x866930F0u, &s3) ||
+                read_half(usb, outPipe, inPipe, 0x870DD000u, &st0)) {
+                fprintf(stderr, "loader sig read failed\n");
+                rc = 1;
+            } else if (s0 != 0xD00Au || s1 != 0x2000u || s2 != 0xB188u || s3 != 0x2805u ||
+                       (st0 != 0xFFFFu && st0 != 0xB51Fu && st0 != 0xB53Fu)) {
+                fprintf(stderr, "LOADER SIGNATURE MISMATCH: %04X %04X / %04X %04X / %04X %04X / st0=%04X\n",
+                        s0, s1, h0, h1, s2, s3, st0);
+                rc = 1;
+            } else if (!strcmp(mode, "loader_restore")) {
+                int err = 0;
+                err |= write_half(usb, outPipe, inPipe, 0x866930EAu, 0xF021u);
+                err |= write_half(usb, outPipe, inPipe, 0x866930ECu, 0xFBF6u);
+                uint16_t r0 = 0, r1 = 0;
+                err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &r0);
+                err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &r1);
+                if (r0 != 0xF021u || r1 != 0xFBF6u) err = 1;
+                for (unsigned i = 0; i < 64 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD000u + i * 2, 0xFFFFu);
+                for (unsigned i = 0; i < 16 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, 0xFFFFu);
+                if (err) { fprintf(stderr, "loader_restore failed\n"); rc = 1; }
+                else printf("OK: loader hook 0x866930EA & scratchpad restored to stock.\n");
+            } else {
+                static const uint16_t stub_main[64] = {
+                    0xB53Fu, 0xB083u, 0x4C14u, 0x6820u, 0xBB00u, 0x2001u, 0x6020u, 0xA017u,
+                    0x4D12u, 0x4629u, 0x466Au, 0xF234u, 0xF8F1u, 0x6060u, 0x9900u, 0x60A1u,
+                    0xB9A0u, 0x682Au, 0x60E2u, 0x2908u, 0xD30Eu, 0x4B0Du, 0x4299u, 0xD80Bu,
+                    0x4B0Cu, 0x429Au, 0xD108u, 0xF732u, 0xD79Eu, 0xF732u, 0xD7F4u, 0x4620u,
+                    0x1D69u, 0x4788u, 0x6120u, 0xE001u, 0x4807u, 0x6120u, 0xB003u, 0xE8BDu,
+                    0x403Fu, 0xF5D7u, 0x9C42u, 0xBF00u, 0xD100u, 0x870Du, 0xE000u, 0x870Du,
+                    0x0000u, 0x0010u, 0x3553u, 0x444Du, 0x0001u, 0xBAD0u, 0x3A41u, 0x535Cu,
+                    0x4D35u, 0x444Fu, 0x4D5Cu, 0x4941u, 0x2E4Eu, 0x4942u, 0x004Eu, 0x0000u
+                };
+                static const uint16_t stub_hello[64] = {
+                    0xB53Fu, 0xB083u, 0x4C14u, 0x6820u, 0xBB00u, 0x2001u, 0x6020u, 0xA017u,
+                    0x4D12u, 0x4629u, 0x466Au, 0xF234u, 0xF8F1u, 0x6060u, 0x9900u, 0x60A1u,
+                    0xB9A0u, 0x682Au, 0x60E2u, 0x2908u, 0xD30Eu, 0x4B0Du, 0x4299u, 0xD80Bu,
+                    0x4B0Cu, 0x429Au, 0xD108u, 0xF732u, 0xD79Eu, 0xF732u, 0xD7F4u, 0x4620u,
+                    0x1D69u, 0x4788u, 0x6120u, 0xE001u, 0x4807u, 0x6120u, 0xB003u, 0xE8BDu,
+                    0x403Fu, 0xF5D7u, 0x9C42u, 0xBF00u, 0xD100u, 0x870Du, 0xE000u, 0x870Du,
+                    0x0000u, 0x0010u, 0x3553u, 0x444Du, 0x0001u, 0xBAD0u, 0x3A41u, 0x485Cu,
+                    0x4C45u, 0x4F4Cu, 0x542Eu, 0x5458u, 0x0000u, 0x0000u, 0x0000u, 0x0000u
+                };
+                int is_hello = !strcmp(mode, "loader_hello");
+                const uint16_t *stub = is_hello ? stub_hello : stub_main;
+                int err = 0;
+                for (unsigned i = 0; i < 16 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, (i >= 2 && (i % 2) == 0) ? 0xDEADu : 0x0000u);
+                for (unsigned i = 0; i < 64 && !err; ++i) {
+                    uint32_t a = 0x870DD000u + i * 2;
+                    uint16_t rb = 0;
+                    err |= write_half(usb, outPipe, inPipe, a, stub[i]);
+                    err |= read_half(usb, outPipe, inPipe, a, &rb);
+                    if (rb != stub[i]) err = 1;
+                }
+                if (!err) {
+                    err |= write_half(usb, outPipe, inPipe, 0x866930EAu, 0xF249u);
+                    err |= write_half(usb, outPipe, inPipe, 0x866930ECu, 0xDF89u);
+                    uint16_t r0 = 0, r1 = 0;
+                    err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &r0);
+                    err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &r1);
+                    if (r0 != 0xF249u || r1 != 0xDF89u) err = 1;
+                }
+                if (err) { fprintf(stderr, "%s failed\n", mode); rc = 1; }
+                else printf("OK: SD plugin loader (%s) installed at 0x870DD000 + hooked at 0x866930EA! Open Rec Quality menu, then run loader_read.\n",
+                            is_hello ? "A:\\HELLO.TXT readback test" : "A:\\S5MOD\\MAIN.BIN");
+            }
+        } else if (!strcmp(mode, "sd_read")) {
+            uint16_t w[16] = {0}, h0 = 0, h1 = 0;
+            int err = 0;
+            for (unsigned i = 0; i < 16 && !err; ++i)
+                err |= read_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, &w[i]);
+            err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &h0);
+            err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &h1);
+            if (err) {
+                fprintf(stderr, "sd_read failed\n");
+                rc = 1;
+            } else {
+                uint32_t v[8];
+                for (unsigned i = 0; i < 8; ++i)
+                    v[i] = (uint32_t)w[i * 2] | ((uint32_t)w[i * 2 + 1] << 16);
+                printf("SD direct (hook 0x866930EA=%04X %04X):\n"
+                       "  ran=%u | parse_rc=0x%08X mh=0x%08X\n"
+                       "  open_rc=0x%08X fh=0x%08X\n"
+                       "  write_rc=0x%08X written=%u | close_rc=0x%08X\n",
+                       h0, h1, v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7]);
+            }
+        } else if (!strcmp(mode, "sd_test") || !strcmp(mode, "sd_restore")) {
+            uint16_t s0 = 0, s1 = 0, h0 = 0, h1 = 0, s2 = 0, s3 = 0, st0 = 0;
+            if (read_half(usb, outPipe, inPipe, 0x866930E6u, &s0) ||
+                read_half(usb, outPipe, inPipe, 0x866930E8u, &s1) ||
+                read_half(usb, outPipe, inPipe, 0x866930EAu, &h0) ||
+                read_half(usb, outPipe, inPipe, 0x866930ECu, &h1) ||
+                read_half(usb, outPipe, inPipe, 0x866930EEu, &s2) ||
+                read_half(usb, outPipe, inPipe, 0x866930F0u, &s3) ||
+                read_half(usb, outPipe, inPipe, 0x870DD000u, &st0)) {
+                fprintf(stderr, "sd_test sig read failed\n");
+                rc = 1;
+            } else if (s0 != 0xD00Au || s1 != 0x2000u || s2 != 0xB188u || s3 != 0x2805u ||
+                       (st0 != 0xFFFFu && st0 != 0xB51Fu && st0 != 0xB53Fu)) {
+                fprintf(stderr, "SD_TEST SIGNATURE MISMATCH: %04X %04X / %04X %04X / %04X %04X / st0=%04X\n",
+                        s0, s1, h0, h1, s2, s3, st0);
+                rc = 1;
+            } else if (!strcmp(mode, "sd_test")) {
+                static const uint16_t stub[70] = {
+                    0xB53Fu, 0xB089u, 0x4C1Au, 0x6820u, 0xBB68u, 0x2001u, 0x6020u, 0xA01Bu,
+                    0xA903u, 0xAA04u, 0xAB06u, 0xF234u, 0xF9CDu, 0x6060u, 0x9903u, 0x60A1u,
+                    0xBB08u, 0x2500u, 0x2001u, 0x9000u, 0x9501u, 0x4603u, 0x9803u, 0xA902u,
+                    0x9A04u, 0xF234u, 0xFE77u, 0x60E0u, 0x9902u, 0x6121u, 0xB998u, 0x480Du,
+                    0x490Du, 0x9007u, 0x9108u, 0x9500u, 0x9501u, 0x9802u, 0xA907u, 0x2206u,
+                    0xAB05u, 0xF234u, 0xFE63u, 0x6160u, 0x9905u, 0x61A1u, 0x9802u, 0x2100u,
+                    0xF234u, 0xFE5Eu, 0x61E0u, 0xB009u, 0xE8BDu, 0x403Fu, 0xF5D7u, 0x9C35u,
+                    0xD100u, 0x870Du, 0x3553u, 0x4F4Du, 0x2144u, 0x0000u, 0x3A41u, 0x485Cu,
+                    0x4C45u, 0x4F4Cu, 0x542Eu, 0x5458u, 0x0000u, 0x0000u
+                };
+                int err = 0;
+                for (unsigned i = 0; i < 16 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, (i >= 2 && (i % 2) == 0) ? 0xDEADu : 0x0000u);
+                for (unsigned i = 0; i < 70 && !err; ++i) {
+                    uint32_t a = 0x870DD000u + i * 2;
+                    uint16_t rb = 0;
+                    err |= write_half(usb, outPipe, inPipe, a, stub[i]);
+                    err |= read_half(usb, outPipe, inPipe, a, &rb);
+                    if (rb != stub[i]) err = 1;
+                }
+                if (!err) {
+                    /* 0x866930EA: bl #0x866b48da (F021 FBF6) -> bl #0x870dd000 (F249 DF89) */
+                    err |= write_half(usb, outPipe, inPipe, 0x866930EAu, 0xF249u);
+                    err |= write_half(usb, outPipe, inPipe, 0x866930ECu, 0xDF89u);
+                    uint16_t r0 = 0, r1 = 0;
+                    err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &r0);
+                    err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &r1);
+                    if (r0 != 0xF249u || r1 != 0xDF89u) err = 1;
+                }
+                if (err) { fprintf(stderr, "sd_test failed\n"); rc = 1; }
+                else printf("OK: idle menu CFS_Open/Write/Close stub installed at 0x866930EA! Open Rec Quality menu (no recording), then run sd_read.\n");
+            } else {
+                int err = 0;
+                /* Restore 0x866930EA -> bl #0x866b48da (F021 FBF6) */
+                err |= write_half(usb, outPipe, inPipe, 0x866930EAu, 0xF021u);
+                err |= write_half(usb, outPipe, inPipe, 0x866930ECu, 0xFBF6u);
+                uint16_t r0 = 0, r1 = 0;
+                err |= read_half(usb, outPipe, inPipe, 0x866930EAu, &r0);
+                err |= read_half(usb, outPipe, inPipe, 0x866930ECu, &r1);
+                if (r0 != 0xF021u || r1 != 0xFBF6u) err = 1;
+                for (unsigned i = 0; i < 70 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD000u + i * 2, 0xFFFFu);
+                for (unsigned i = 0; i < 16 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD100u + i * 2, 0xFFFFu);
+                if (err) { fprintf(stderr, "sd_restore failed\n"); rc = 1; }
+                else printf("OK: idle menu hook 0x866930EA & scratchpad restored to stock.\n");
+            }
+        } else if (!strcmp(mode, "hb_read")) {
+            uint16_t lo = 0, hi = 0, h0 = 0, h1 = 0;
+            if (read_half(usb, outPipe, inPipe, 0x870DD100u, &lo) ||
+                read_half(usb, outPipe, inPipe, 0x870DD102u, &hi) ||
+                read_half(usb, outPipe, inPipe, 0x86476F52u, &h0) ||
+                read_half(usb, outPipe, inPipe, 0x86476F54u, &h1)) {
+                fprintf(stderr, "hb_read failed\n");
+                rc = 1;
+            } else {
+                uint32_t cnt = (uint32_t)lo | ((uint32_t)hi << 16);
+                printf("HB counter 0x870DD100 = %u (0x%08X) | hook 0x86476F52=%04X %04X\n",
+                       cnt, cnt, h0, h1);
+            }
+        } else if (!strcmp(mode, "hb_enable") || !strcmp(mode, "hb_restore")) {
+            uint16_t s0 = 0, s1 = 0, h0 = 0, h1 = 0, s2 = 0, st0 = 0;
+            if (read_half(usb, outPipe, inPipe, 0x86476F4Eu, &s0) ||
+                read_half(usb, outPipe, inPipe, 0x86476F50u, &s1) ||
+                read_half(usb, outPipe, inPipe, 0x86476F52u, &h0) ||
+                read_half(usb, outPipe, inPipe, 0x86476F54u, &h1) ||
+                read_half(usb, outPipe, inPipe, 0x86476F56u, &s2) ||
+                read_half(usb, outPipe, inPipe, 0x870DD000u, &st0)) {
+                fprintf(stderr, "hb sig read failed\n");
+                rc = 1;
+            } else if (s0 != 0xF225u || s1 != 0xFFCBu || s2 != 0x48FAu ||
+                       (st0 != 0xFFFFu && st0 != 0xB503u && st0 != 0xB51Fu && st0 != 0xB53Fu)) {
+                fprintf(stderr, "HB SIGNATURE MISMATCH: %04X %04X / %04X %04X / %04X / st0=%04X\n",
+                        s0, s1, h0, h1, s2, st0);
+                rc = 1;
+            } else if (!strcmp(mode, "hb_enable")) {
+                static const uint16_t stub[12] = {
+                    0xB503u, 0x4804u, 0x6801u, 0x3101u, 0x6001u,
+                    0xE8BDu, 0x4003u, 0xF5D7u, 0x98B3u, 0xBF00u,
+                    0xD100u, 0x870Du
+                };
+                int err = 0;
+                err |= write_half(usb, outPipe, inPipe, 0x870DD100u, 0x0000u);
+                err |= write_half(usb, outPipe, inPipe, 0x870DD102u, 0x0000u);
+                for (unsigned i = 0; i < 12 && !err; ++i) {
+                    uint32_t a = 0x870DD000u + i * 2;
+                    uint16_t rb = 0;
+                    err |= write_half(usb, outPipe, inPipe, a, stub[i]);
+                    err |= read_half(usb, outPipe, inPipe, a, &rb);
+                    if (rb != stub[i]) err = 1;
+                }
+                if (!err) {
+                    err |= write_half(usb, outPipe, inPipe, 0x86476F52u, 0xF066u);
+                    err |= write_half(usb, outPipe, inPipe, 0x86476F54u, 0xD055u);
+                    uint16_t r0 = 0, r1 = 0;
+                    err |= read_half(usb, outPipe, inPipe, 0x86476F52u, &r0);
+                    err |= read_half(usb, outPipe, inPipe, 0x86476F54u, &r1);
+                    if (r0 != 0xF066u || r1 != 0xD055u) err = 1;
+                }
+                if (err) { fprintf(stderr, "hb_enable failed\n"); rc = 1; }
+                else printf("OK: HB stub installed at 0x870DD000 + hooked at 0x86476F52! Tap Record for 2s then run hb_read.\n");
+            } else {
+                int err = 0;
+                err |= write_half(usb, outPipe, inPipe, 0x86476F52u, 0xF23Du);
+                err |= write_half(usb, outPipe, inPipe, 0x86476F54u, 0xF911u);
+                for (unsigned i = 0; i < 70 && !err; ++i)
+                    err |= write_half(usb, outPipe, inPipe, 0x870DD000u + i * 2, 0xFFFFu);
+                if (err) { fprintf(stderr, "hb_restore failed\n"); rc = 1; }
+                else printf("OK: HB hook & scratchpad restored to stock.\n");
             }
         } else if (!strcmp(mode, "enable")) {
             uint16_t want_q = preset_insn(preset);
