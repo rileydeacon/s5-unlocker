@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Lumix DC-S5 Native Unlocker (WebUSB)</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #181c24;
+    --border: #2a3140;
+    --text: #edf1f7;
+    --muted: #8b95a8;
+    --accent: #3b82f6;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    max-width: 520px;
+    margin-inline: auto;
+  }
+  h1 { font-size: 1.25rem; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+  }
+  .dot.ok { background: var(--green); box-shadow: 0 0 10px var(--green); }
+  .dot.err { background: var(--red); box-shadow: 0 0 10px var(--red); }
+  .dot.warn { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+  button {
+    width: 100%;
+    padding: 15px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #232936;
+    color: var(--text);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+    text-align: center;
+    transition: transform 0.05s ease, opacity 0.15s ease;
+  }
+  button:active { transform: scale(0.985); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  button.primary {
+    background: var(--accent);
+    border-color: #60a5fa;
+    color: #fff;
+    padding: 20px 16px;
+    font-size: 1.08rem;
+  }
+  button.connect {
+    background: #1e293b;
+    border-color: #38bdf8;
+  }
+  button.restore {
+    background: #2a1f23;
+    border-color: #7f1d1d;
+    color: #fca5a5;
+    margin-bottom: 0;
+  }
+  .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 12px;
+  }
+  .pill {
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(59,130,246,0.16);
+    border: 1px solid rgba(96,165,250,0.35);
+    color: #bfdbfe;
+  }
+  pre {
+    background: #090b0f;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: #cbd5e1;
+    max-height: 210px;
+    overflow-y: auto;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .steps {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0;
+    padding-left: 18px;
+  }
+</style>
+</head>
+<body>
+  <h1>Lumix DC-S5 Native Unlocker</h1>
+  <p class="sub">MC801 FW 2.9 &middot; Volatile RAM only (0% flash / 0% brick risk)</p>
+
+  <div class="card">
+    <div class="status">
+      <div id="dot" class="dot"></div>
+      <div id="statusText">Not connected</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="pill-list">
+      <span class="pill">6K 3:2 Open Gate 23.98p</span>
+      <span class="pill">5.9K 16:9 23.98p</span>
+      <span class="pill">Unlimited Rec (All Modes)</span>
+    </div>
+    <button id="btnConnect" class="connect">Connect DC-S5 (Service Mode 04DA:2370)</button>
+    <button id="btnUnlock" class="primary" disabled>Unlock Native Menu + Unlimited Rec</button>
+    <button id="btnRestore" class="restore" disabled>Restore Stock RAM</button>
+  </div>
+
+  <div class="card">
+    <pre id="log">Ready. Boot S5 holding PLAYBACK + AF/AE LOCK, plug in USB-C, and tap Connect.</pre>
+  </div>
+
+  <div class="card">
+    <ol class="steps">
+      <li>Hold <b>PLAYBACK + AF/AE LOCK</b> and flip S5 Power <b>ON</b>.</li>
+      <li>Plug USB-C cable between phone and S5, tap <b>Connect</b>, allow USB permission.</li>
+      <li>Tap <b>Unlock Native Menu + Unlimited 4K</b>. Wait for green <b>UNLOCKED</b> status.</li>
+      <li>Unplug USB-C. Open <b>Rec Quality (MOV)</b> and scroll to the bottom for <b>5.9K</b> &amp; <b>6K Open Gate</b>. Power-off restores 100% stock automatically.</li>
+    </ol>
+  </div>
+
+<script>
+(() => {
+  const VID = 0x04DA;
+  const PID = 0x2370;
+
+  // MC801 FW 2.9 signature anchors
+  const SIG_CHECKS = [
+    [0x866B493A, [0x2801], 'rtos_sig1'],
+    [0x866B493E, [0xB2E0], 'rtos_sig2'],
+    [0x866B4952, [0x486B], 'rtos_sig3'],
+    [0x866B4956, [0xBD10], 'rtos_sig4'],
+    [0x86F15E8C, [0x00CE], 'wl_anchor'],
+    [0x86F15E98, [0xFFFF], 'wl_sentinel'],
+    [0x87089604, [0x00CE], 'rom_tpl_anchor'],
+    [0x87089634, [0xFFFF], 'rom_tpl_sentinel'],
+    [0x08A68C4C, [0x00CE], 'tpl_anchor'],
+    [0x08A6844C, [0x00CE], 'ui_anchor'],
+    [0x868261B4, [0x460D], 'cap_prev'],
+    [0x868261B6, [0x4628, 0x2000], 'cap_ret'],
+    [0x868261B8, [0xE8BD], 'cap_pop'],
+  ];
+
+  // Volatile RAM patches: [addr, unlockVal, stockVal, label]
+  // Swaps the 2 lowest FHD slots (0x00D1, 0x00D2) -> 5.9K 23.98p (0x00F1), 6K 3:2 23.98p (0x00ED)
+  const PATCHES = [
+    // 1) NTSC Validator Whitelist (0x86F15E30 tail)
+    [0x86F15E90, 0x00F1, 0x00D1, 'wl_59k24_lo'],
+    [0x86F15E92, 0x80F1, 0x80D1, 'wl_59k24_hi'],
+    [0x86F15E94, 0x00ED, 0x00D2, 'wl_6k2398_lo'],
+    [0x86F15E96, 0x80ED, 0x80D2, 'wl_6k2398_hi'],
+
+    // 2) Master ROM-in-RAM MOV Template (0x87089524 tail — survives soft Power-Switch OFF/ON)
+    [0x87089614, 0x00F1, 0x00D1, 'rom_tpl_59k24_lo'],
+    [0x8708961C, 0x80F1, 0x80D1, 'rom_tpl_59k24_hi'],
+    [0x87089624, 0x00ED, 0x00D2, 'rom_tpl_6k2398_lo'],
+    [0x8708962C, 0x80ED, 0x80D2, 'rom_tpl_6k2398_hi'],
+
+    // 3) Active NTSC MOV Source Template (0x08A68B6C tail)
+    [0x08A68C5C, 0x00F1, 0x00D1, 'tpl_59k24_lo'],
+    [0x08A68C64, 0x80F1, 0x80D1, 'tpl_59k24_hi'],
+    [0x08A68C6C, 0x00ED, 0x00D2, 'tpl_6k2398_lo'],
+    [0x08A68C74, 0x80ED, 0x80D2, 'tpl_6k2398_hi'],
+
+    // 3) Live UI Menu Table (0x08A6836C tail, visibility=0x0104)
+    [0x08A6845C, 0x00F1, 0x00D1, 'ui_59k24_lo'],
+    [0x08A6845E, 0x0104, 0x0104, 'ui_59k24_vis'],
+    [0x08A68464, 0x80F1, 0x80D1, 'ui_59k24_hi'],
+    [0x08A6846C, 0x00ED, 0x00D2, 'ui_6k2398_lo'],
+    [0x08A6846E, 0x0104, 0x0104, 'ui_6k2398_vis'],
+    [0x08A68474, 0x80ED, 0x80D2, 'ui_6k2398_hi'],
+
+    // 4) Unlimited recording in ALL limited modes (0x86826102 returns 0 = card-limited only)
+    [0x868261B6, 0x2000, 0x4628, 'unlimited_all'],
+  ];
+
+  let dev = null;
+  let epOut = 1;
+  let epIn = 2;
+
+  const $ = id => document.getElementById(id);
+
+  function log(msg) {
+    const el = $('log');
+    el.textContent += '\n' + msg;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  function setStatus(text, state) {
+    $('statusText').textContent = text;
+    $('dot').className = 'dot' + (state ? ' ' + state : '');
+  }
+
+  function setEnabled(on) {
+    $('btnUnlock').disabled = !on;
+    $('btnRestore').disabled = !on;
+  }
+
+  function hex4(v) { return '0x' + v.toString(16).toUpperCase().padStart(4, '0'); }
+  function hex8(v) { return '0x' + (v >>> 0).toString(16).toUpperCase().padStart(8, '0'); }
+
+  function frameSum(arr, len = arr.length) {
+    let s = 0;
+    for (let i = 1; i + 2 < len; i++) s = (s + arr[i]) & 0xFF;
+    return s;
+  }
+
+  async function prepare(index) {
+    const res = await dev.controlTransferOut({
+      requestType: 'vendor',
+      recipient: 'device',
+      request: 0,
+      value: 0,
+      index
+    });
+    if (res.status !== 'ok') throw new Error(`prepare(${index}) failed: ${res.status}`);
+  }
+
+  async function readHalf(addr) {
+    const tx = new Uint8Array(16);
+    tx[0] = 8; tx[2] = 0xFF; tx[3] = 0x9B;
+    tx[4] = addr & 0xFF;
+    tx[5] = (addr >>> 8) & 0xFF;
+    tx[6] = (addr >>> 16) & 0xFF;
+    tx[7] = (addr >>> 24) & 0xFF;
+    tx[14] = frameSum(tx);
+
+    await prepare(0);
+    const out = await dev.transferOut(epOut, tx);
+    if (out.status !== 'ok') throw new Error('bulk OUT failed');
+
+    await prepare(1);
+    const tRes = await dev.transferIn(epIn, 64);
+    if (tRes.status !== 'ok' || tRes.data.byteLength !== 1 || tRes.data.getUint8(0) !== 8) {
+      throw new Error('unexpected type byte on read');
+    }
+
+    await prepare(1);
+    const rRes = await dev.transferIn(epIn, 64);
+    if (rRes.status !== 'ok' || rRes.data.byteLength !== 16) {
+      throw new Error(`unexpected reply len ${rRes.data.byteLength}`);
+    }
+    const rx = new Uint8Array(rRes.data.buffer, rRes.data.byteOffset, 16);
+    if (rx[3] !== 0x36 || rx[14] !== frameSum(rx) || rx[15] !== 0) {
+      throw new Error('bad read checksum/opcode');
+    }
+    return rx[4] | (rx[5] << 8);
+  }
+
+  async function writeHalf(addr, val) {
+    const tx = new Uint8Array(16);
+    tx[0] = 8; tx[2] = 0xFF; tx[3] = 0x9C;
+    tx[4] = addr & 0xFF;
+    tx[5] = (addr >>> 8) & 0xFF;
+    tx[6] = (addr >>> 16) & 0xFF;
+    tx[7] = (addr >>> 24) & 0xFF;
+    tx[8] = val & 0xFF;
+    tx[9] = (val >>> 8) & 0xFF;
+    tx[14] = frameSum(tx);
+
+    await prepare(0);
+    const out = await dev.transferOut(epOut, tx);
+    if (out.status !== 'ok') throw new Error('bulk OUT failed');
+
+    await prepare(1);
+    const tRes = await dev.transferIn(epIn, 64);
+    if (tRes.status !== 'ok' || tRes.data.byteLength !== 1) throw new Error('bad ack type len');
+    const tb = tRes.data.getUint8(0);
+    if (tb !== 8 && tb !== 1) throw new Error(`unexpected ack type ${tb}`);
+
+    await prepare(1);
+    const rRes = await dev.transferIn(epIn, 64);
+    if (rRes.status !== 'ok' || rRes.data.byteLength < 6) throw new Error('short write ack');
+    const rx = new Uint8Array(rRes.data.buffer, rRes.data.byteOffset, rRes.data.byteLength);
+    if (rx[0] !== 8 || rx[1] !== 0 || rx[2] !== 0xFF ||
+        rx[rx.length - 2] !== frameSum(rx) || rx[rx.length - 1] !== 0 ||
+        (rx[3] !== 0x00 && rx[3] !== 0x01)) {
+      throw new Error('write NACK or bad checksum');
+    }
+  }
+
+  async function verifySignatures() {
+    for (const [addr, allowed, name] of SIG_CHECKS) {
+      const v = await readHalf(addr);
+      if (!allowed.includes(v)) {
+        throw new Error(`SIGNATURE MISMATCH at ${name} (${hex8(addr)}=${hex4(v)}) — wrong firmware? Aborting.`);
+      }
+    }
+    log('Signatures verified (MC801 FW 2.9).');
+  }
+
+  async function applyAll(unlock) {
+    setEnabled(false);
+    try {
+      setStatus(unlock ? 'Unlocking native menu + unlimited 4K...' : 'Restoring stock RAM...', 'warn');
+      await verifySignatures();
+
+      for (const [addr, uVal, sVal, name] of PATCHES) {
+        const target = unlock ? uVal : sVal;
+        await writeHalf(addr, target);
+        const rb = await readHalf(addr);
+        if (rb !== target) {
+          throw new Error(`read-back mismatch at ${name} (${hex8(addr)}: got ${hex4(rb)}, expected ${hex4(target)})`);
+        }
+      }
+
+      if (unlock) {
+        log('OK: 6K 3:2 Open Gate 23.98p + 5.9K 23.98p + Unlimited 4K 10-bit ACTIVE!');
+        log('Safe to unplug USB-C. Check Rec Quality (MOV) at the bottom of the list.');
+        setStatus('UNLOCKED — safe to unplug & shoot!', 'ok');
+      } else {
+        log('OK: All 15 RAM entries restored to 100% stock.');
+        setStatus('Stock RAM restored', 'ok');
+      }
+    } catch (e) {
+      log('ERROR: ' + e.message);
+      setStatus('Error — see log', 'err');
+    } finally {
+      if (dev && dev.opened) setEnabled(true);
+    }
+  }
+
+  async function openDevice(d) {
+    dev = d;
+    if (!dev.opened) await dev.open();
+    if (!dev.configuration) await dev.selectConfiguration(1);
+    await dev.claimInterface(0);
+
+    const eps = dev.configuration.interfaces[0].alternate.endpoints;
+    for (const ep of eps) {
+      if (ep.type === 'bulk' && ep.direction === 'out') epOut = ep.endpointNumber;
+      if (ep.type === 'bulk' && ep.direction === 'in')  epIn  = ep.endpointNumber;
+    }
+    log(`Connected: ${dev.productName || 'DC-S5'} (04DA:2370, epOut=${epOut}, epIn=${epIn})`);
+    await verifySignatures();
+    setStatus('Connected & verified — ready!', 'ok');
+    setEnabled(true);
+  }
+
+  $('btnConnect').addEventListener('click', async () => {
+    if (!navigator.usb) {
+      setStatus('WebUSB not supported here', 'err');
+      log('ERROR: Open in Chrome over HTTPS or localhost (not file://, not iOS Safari).');
+      return;
+    }
+    try {
+      const d = await navigator.usb.requestDevice({ filters: [{ vendorId: VID, productId: PID }] });
+      await openDevice(d);
+    } catch (e) {
+      log('Connect error: ' + e.message);
+      setStatus('Connection failed', 'err');
+    }
+  });
+
+  $('btnUnlock').addEventListener('click',  () => applyAll(true));
+  $('btnRestore').addEventListener('click', () => applyAll(false));
+
+  if (navigator.usb) {
+    navigator.usb.addEventListener('connect', async (ev) => {
+      if (ev.device.vendorId === VID && ev.device.productId === PID) {
+        try { await openDevice(ev.device); } catch (e) { log('Auto-connect error: ' + e.message); }
+      }
+    });
+    navigator.usb.addEventListener('disconnect', (ev) => {
+      if (dev && ev.device === dev) {
+        dev = null;
+        setEnabled(false);
+        setStatus('Disconnected (unplugged)', '');
+      }
+    });
+    navigator.usb.getDevices().then(async (devs) => {
+      const match = devs.find(d => d.vendorId === VID && d.productId === PID);
+      if (match) {
+        try { await openDevice(match); } catch (_) {}
+      }
+    });
+  } else {
+    setStatus('Open in Chrome over HTTPS or localhost', 'warn');
+  }
+})();
+</script>
+</body>
+</html>
