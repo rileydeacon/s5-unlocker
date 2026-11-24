@@ -1,7 +1,8 @@
 # Lumix DC-S5 (`MC801`, FW 2.9) — Native 6K Open Gate, 5.9K (NTSC + PAL) & Unlimited Recording
 
-**v1.3** — Unlock **native-menu internal 6K 3:2 Open Gate (`5952×3968` 23.98p)**, **5.9K 16:9 (`5888×3312` 23.98p / 29.97p NTSC & 25p PAL)**, and **unlimited recording in all limited modes** on the original **Panasonic Lumix DC-S5 (Mark I)** — with **zero flash writes, zero soldering, and 0% brick risk**.
+**v1.4** — Unlock **native-menu internal 6K 3:2 Open Gate (`5952×3968` 23.98p)**, **5.9K 16:9 (`5888×3312` 23.98p / 29.97p NTSC & 25p PAL)**, **live HDMI monitor output during 6K/5.9K recording**, and **unlimited recording in all limited modes** on the original **Panasonic Lumix DC-S5 (Mark I)** — with **zero flash writes, zero soldering, and 0% brick risk**.
 
+- **Live HDMI Output During 6K / 5.9K Recording (NEW in v1.4):** Fixes the stock firmware behavior where HDMI output blanks out when starting/stopping 6K Open Gate or 5.9K recording (`0x866ACC9C` & `0x8664425C` → `NOP`).
 - **Native S5 UI (NTSC & PAL):**
   - **NTSC (59.94Hz) MOV:** `6K 3:2 Open Gate 23.98p` (`0x00ED`), `5.9K 16:9 23.98p` (`0x00F1`), and `5.9K 16:9 29.97p` (`0x00F4`) appear directly at the bottom of **Menu → Video → Rec Quality (MOV)**.
   - **PAL (50.00Hz) MOV:** `5.9K 16:9 25.00p` (`0x00F3`) appears directly at the bottom of **Menu → Video → Rec Quality (MOV)**.
@@ -51,6 +52,7 @@ The DC-S5's Venus Engine already contains the 2-core HEVC tile-split encoder (`3
 | PAL Master ROM-in-RAM Template | `0x870896CC`–`D4` | `00F3/80F3` → `00CD/80CD` | Survives soft Power-Switch OFF/ON wake-up |
 | PAL Active MOV Template | `0x08A68D14`–`1C` | `00F3/80F3` → `00CD/80CD` | Copied into live UI buffer in PAL MOV |
 | Recording Limit Getter | `0x868261B6` | `0x2000` (`movs r0, #0`) → `0x4628` | Removes 30-min & 15-min caps across all modes |
+| 6K/5.9K HDMI Blanking Checks | `0x866ACC9C`, `0x8664425C` | `0xBF00` (`nop`) → `0xD1E7`, `0xD17B` | Keeps external HDMI feed live during 6K/5.9K recording |
 
 *(Note: 5.4K Open Gate `0x00EF`/`0x00F0` is intentionally excluded because its `5376×3584` pipeline stalls on record on the S5.)*
 

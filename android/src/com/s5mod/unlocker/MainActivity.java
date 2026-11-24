@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 
     private enum UiState { WAITING, READY, ARMED }
 
-    // MC801 FW 2.9 static signature anchors (19 halfwords, independent of MP4/MOV/PAL/NTSC state)
+    // MC801 FW 2.9 static signature anchors (21 halfwords, independent of MP4/MOV/PAL/NTSC state)
     private static final int[][] SIG_CHECKS = {
         {0x866B493A, 0x2801, -1},
         {0x866B493E, 0xB2E0, -1},
@@ -63,6 +63,8 @@ public class MainActivity extends Activity {
         {0x868261B4, 0x460D, -1},
         {0x868261B6, 0x4628, 0x2000},
         {0x868261B8, 0xE8BD, -1},
+        {0x866ACC9C, 0xD1E7, 0xBF00},
+        {0x8664425C, 0xD17B, 0xBF00},
         {0x86F15E84, 0x00C0, -1},
         {0x86F15E98, 0xFFFF, -1},
         {0x86F15ED2, 0x00C1, -1},
@@ -117,6 +119,10 @@ public class MainActivity extends Activity {
 
         // 7) Unlimited recording in ALL limited modes (0x86826102 returns 0)
         {0x868261B6, 0x2000, 0x4628},
+
+        // 8) Keep HDMI live during 6K/5.9K recording (NOP out 6K-rec HDMI blanking branches)
+        {0x866ACC9C, 0xBF00, 0xD1E7},
+        {0x8664425C, 0xBF00, 0xD17B},
     };
 
     // Conditional Live UI buffer refresh when NTSC MOV or PAL MOV is already cached
@@ -524,7 +530,7 @@ public class MainActivity extends Activity {
         surface.addView(wellRow);
 
         TextView heading = new TextView(this);
-        heading.setText("Modes to enable (v1.3)");
+        heading.setText("Modes to enable (v1.4)");
         heading.setTextColor(C_NEEDLE);
         heading.setTextSize(15);
         heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
@@ -533,6 +539,7 @@ public class MainActivity extends Activity {
 
         addSpecRow(surface, "6K Open Gate", "5952\u00D73968 \u00B7 23.98p \u00B7 NTSC", C_LIGHT, C_DIM);
         addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL", C_LIGHT, C_DIM);
+        addSpecRow(surface, "HDMI output", "Live during 6K/5.9K rec", C_LIGHT, C_DIM);
         addSpecRow(surface, "Recording limit", "Unlimited \u00B7 all modes", C_LIGHT, C_DIM);
         addSpecRow(surface, "Power switch", "Survives until battery pull", C_LIGHT, C_DIM);
 
