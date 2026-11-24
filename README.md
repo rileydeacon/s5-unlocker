@@ -64,8 +64,8 @@ Please use **GitHub Issues / Discussions** for bug reports, S5/S5D compatibility
 
 ## Thermal, Battery & Troubleshooting Notes
 - **Hardware thermal protection remains active.** Long 6K/4K takes in hot environments will still display normal thermal warnings if the body overheats.
-- **Power-switch vs. battery pull:** Flipping the power switch OFF/ON keeps the unlock active. Charging in-body over USB-C (without opening the battery door) or using a **DMW-BGS5 battery grip** preserves DRAM across shoots. Opening the battery door or pulling the battery forces a cold boot back to 100% stock.
-- **After pulling the battery while in 6K/5.9K:** If you pull the battery while 6K or 5.9K is still selected, stock FW 2.9 will fall back to `4K 60p 10-bit` (`0x008B`) until refreshed. Just press **Q** once and select any stock Rec Quality (or switch to a stock mode before pulling the battery).
+- **Power-switch vs. battery pull:** Flipping the power switch OFF/ON keeps the unlock active. Charging in-body over USB-C (without opening the battery door), using a **DMW-BGS5 battery grip**, or building a **\$5 USB-C keychain auto-arm dongle** solves battery swaps with 0% brick risk — see **[`BATTERY_PERSISTENCE_AND_DONGLE.md`](BATTERY_PERSISTENCE_AND_DONGLE.md)** for full details! Opening the battery door or pulling the battery forces a cold boot back to 100% stock.
+- **After pulling the battery while in 6K/5.9K:** If you pull the battery while 6K or 5.9K is still selected, the RAM patch clears on cold boot while the camera still remembers the unlocked mode ID — which can make the MOV Rec Quality menu appear blank or stuck until reset. **Always switch back to a stock mode before pulling the battery.** If it does happen, switch **Rec File Format: MOV → MP4 → MOV**, re-apply the patch and pick a stock mode, or use **Menu → Setup (Wrench) → Reset → Reset Rec Settings** (guaranteed 10-second recovery with no USB needed).
 
 ## Disclaimer & License
 **Unofficial community project — not affiliated with, endorsed by, or sponsored by Panasonic.** Provided as-is with no warranty; use at your own risk.

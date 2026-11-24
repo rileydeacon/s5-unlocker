@@ -64,9 +64,11 @@ native menu slots:
 ## 3. Experimental / Research Candidates (Same Volatile RAM Method)
 
 These have not been live-tested yet but sit in the same writable RTOS RAM architecture:
-- **Custom Bitrate Bump (`0x08AA45E0` field `w5`):** Target Mbps (`200` for 6K/5.9K, `150` for 4K 10-bit) is stored directly in writable RAM. Needs a quick live test to see if the Venus Engine HEVC/H.264 rate-controller honors a raised value (e.g. `200 → 300`).
-- **Hidden S1/S1H UI Menu Items (`0x08A6xxxx`):** Any S1/S1H-tier menu option compiled into the shared `MC801` RTOS and merely hidden (`f1 = 0x0101` / `0x0102`) in `0x08A6xxxx` (e.g., Waveform/Vectorscope, extra Anamorphic desqueeze ratios, VFR/HDMI toggles) can be audited and tested by flipping visibility to `0x0104`.
-- **PAL 50.00 Hz Menu Table Support:** Mirroring the same 4-table swap on the PAL whitelist (`0x86F15E9A`) and PAL MOV template (`0x08A68C84`) to expose 5.9K 25p (`0x00F3`) and 5.4K 25p (`0x00EF`) natively for PAL shooters.
+- **Hardware Waveform Monitor & Vectorscope (`AVIO_SetWfm` @ `0x8678DA82`, VERIFIED LIVE 2026-11-24!):** Live-verified S1H Venus Engine hardware Waveform on the S5 LCD (`s5-plugin-sdk/HARDWARE_WFM_NOTES.md`). Handed off to the open-source community SDK so `S5 Unlocker` stays focused and simple.
+- **Tested & Closed (Do Not Ship):**
+  - **6K Bitrate Bump (`0x08AA65AC` `w5`: `200 → 300`):** Live-verified metadata-only (`P1075082.MOV` still encoded at `190.07 Mbps`); real rate-controller lives in VCL (`0x8779xxxx`).
+  - **4K 400 Mbps 4:2:2 10-bit ALL-I (`0x0098`):** Live-tested both via getter override and natively in the MOV Rec Quality menu — refuses to record with *"cannot record due to incompatible format"* and locks the Rec Quality menu until `Menu → Setup → Reset → Reset Rec Settings`.
+- **Hidden S1/S1H UI Menu Items (`0x08A6xxxx`):** Any other S1/S1H-tier menu option compiled into the shared `MC801` RTOS and merely hidden (`f1 = 0x0101` / `0x0102`) in `0x08A6xxxx` can be audited and tested by flipping visibility to `0x0104`.
 
 ---
 
