@@ -77,7 +77,8 @@ clang -O2 -framework IOKit -framework CoreFoundation mac-cli/s5_v15_test.c -o s5
 ### Always Switch to a Stock Mode Before Pulling the Battery
 If you pull the battery while `6K` or `5.9K` is still selected, the RAM patch clears on cold boot while the camera still remembers the unlocked mode ID. This can make the MOV Rec Quality menu appear blank or stuck until reset.
 
-If that happens, recover in 10 seconds with either method:
+If that happens, recover in seconds with any of these methods:
+- Press the **Q** button and change **Rec Quality** back to a normal stock mode (fastest).
 - Switch **Rec File Format: MOV → MP4 → MOV**, or re-apply the unlock and select a stock mode.
 - Run **Menu → Setup (Wrench) → Reset → Reset Rec Settings** (guaranteed recovery, no USB required).
 
