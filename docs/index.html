@@ -313,16 +313,17 @@
           <div class="well"><span class="well-k">Firmware</span><span class="well-v">MC801 2.9</span></div>
           <div class="well"><span class="well-k">State</span><span class="well-v">Stock</span></div>
         </div>
-        <h2 class="sec-title">Modes to enable (v1.4)</h2>
-        <div class="spec-row"><span class="spec-l">6K Open Gate</span><span class="spec-r">5952&times;3968 &middot; 23.98p &middot; NTSC</span></div>
-        <div class="spec-row"><span class="spec-l">5.9K Full</span><span class="spec-r">23.98p / 29.97p / 25p PAL</span></div>
+        <h2 class="sec-title">Modes to enable (v1.5)</h2>
+        <div class="spec-row"><span class="spec-l">6K Open Gate</span><span class="spec-r">5952&times;3968 &middot; 23.98p &middot; top of MOV</span></div>
+        <div class="spec-row"><span class="spec-l">5.9K Full</span><span class="spec-r">23.98p / 29.97p / 25p PAL &middot; top</span></div>
+        <div class="spec-row"><span class="spec-l">Stock modes</span><span class="spec-r">100% preserved &middot; zero removed</span></div>
         <div class="spec-row"><span class="spec-l">HDMI output</span><span class="spec-r">Live during 6K/5.9K rec</span></div>
         <div class="spec-row"><span class="spec-l">Recording limit</span><span class="spec-r">Unlimited &middot; all modes</span></div>
         <div class="spec-row"><span class="spec-l">Power switch</span><span class="spec-r">Survives until battery pull</span></div>
       </div>
       <div class="action-area">
         <button id="btnUnlock" class="btn-primary">Unlock camera</button>
-        <p id="readySubNote" class="sub-mono">21 signatures verified &middot; 27 RAM words</p>
+        <p id="readySubNote" class="sub-mono">25 signatures verified &middot; zero flash writes</p>
       </div>
     </section>
 
@@ -341,13 +342,13 @@
           <div class="well"><span class="well-k">Firmware</span><span class="well-v">MC801 2.9</span></div>
           <div class="well"><span class="well-k">State</span><span class="well-v">Armed</span></div>
         </div>
-        <div class="spec-row"><span class="spec-l">6K Open Gate</span><span class="spec-r">23.98p &middot; NTSC MOV</span></div>
+        <div class="spec-row"><span class="spec-l">6K Open Gate</span><span class="spec-r">23.98p &middot; top of NTSC MOV</span></div>
         <div class="spec-row"><span class="spec-l">5.9K Full</span><span class="spec-r">23.98p / 29.97p / 25p PAL</span></div>
-        <div class="spec-row"><span class="spec-l">Recording limit</span><span class="spec-r">Unlimited</span></div>
+        <div class="spec-row"><span class="spec-l">HDMI &amp; limit</span><span class="spec-r">Live HDMI &middot; Unlimited</span></div>
       </div>
       <div class="action-area">
         <p id="armedHeadline" class="armed-headline">Safe to unplug USB-C</p>
-        <p class="armed-sub">Rec Quality (MOV) &rarr; scroll to bottom</p>
+        <p class="armed-sub">Rec Quality (MOV) &rarr; right at the top</p>
         <button id="btnRestore" class="btn-secondary">Restore stock</button>
       </div>
     </section>
@@ -368,7 +369,7 @@
   const VID = 0x04DA;
   const PID = 0x2370;
 
-  // MC801 FW 2.9 static signature anchors (21 halfwords, independent of MP4/MOV/PAL/NTSC state)
+  // MC801 FW 2.9 static signature anchors (25 halfwords, independent of MP4/MOV/PAL/NTSC state)
   const SIG_CHECKS = [
     [0x866B493A, [0x2801], 'rtos_sig1'],
     [0x866B493E, [0xB2E0], 'rtos_sig2'],
@@ -379,6 +380,14 @@
     [0x868261B8, [0xE8BD], 'cap_pop'],
     [0x866ACC9C, [0xD1E7, 0xBF00], 'hdmi_6k_rec1'],
     [0x8664425C, [0xD17B, 0xBF00], 'hdmi_6k_rec2'],
+    [0x86462C34, [0x5E30, 0xD440], 'ptr_ntsc_wl_lo'],
+    [0x86462C36, [0x06F1, 0x870D], 'ptr_ntsc_wl_hi'],
+    [0x86462C40, [0x5E9A, 0xD4C0], 'ptr_pal_wl_lo'],
+    [0x86462C42, [0x06F1, 0x870D], 'ptr_pal_wl_hi'],
+    [0x866931B8, [0x8B6C, 0xD200], 'ptr_ntsc_ui_lo'],
+    [0x866931BA, [0x08A6, 0x870D], 'ptr_ntsc_ui_hi'],
+    [0x866931D4, [0x8C84, 0xD360], 'ptr_pal_ui_lo'],
+    [0x866931D6, [0x08A6, 0x870D], 'ptr_pal_ui_hi'],
     [0x86F15E84, [0x00C0], 'ntsc_wl_anchor'],
     [0x86F15E98, [0xFFFF], 'ntsc_wl_sentinel'],
     [0x86F15ED2, [0x00C1], 'pal_wl_anchor'],
@@ -387,66 +396,64 @@
     [0x87089634, [0xFFFF], 'ntsc_rom_sentinel'],
     [0x870896BC, [0x00C1], 'pal_rom_anchor'],
     [0x870896EC, [0xFFFF], 'pal_rom_sentinel'],
-    [0x08A68C2C, [0x00C0], 'ntsc_tpl_anchor'],
-    [0x08A68C7C, [0xFFFF], 'ntsc_tpl_sentinel'],
-    [0x08A68D04, [0x00C1], 'pal_tpl_anchor'],
-    [0x08A68D34, [0xFFFF], 'pal_tpl_sentinel'],
   ];
 
-  // v1.3: 25 volatile RAM halfwords (NTSC 6K24/5.9K24/5.9K30 + PAL 5.9K25 + Unlimited, suspend-safe)
+  // v1.5: Expanded tables in unused volatile RAM (0x870DD200..0x870DD510)
+  // 6K/5.9K at the VERY TOP of MOV Rec Quality + 100% of stock modes preserved!
+  const NEW_NTSC_UI = 0x870DD200;
+  const NEW_PAL_UI  = 0x870DD360;
+  const NEW_NTSC_WL = 0x870DD440;
+  const NEW_PAL_WL  = 0x870DD4C0;
+  const LIVE_UI_BASE = 0x08A6836C;
+
+  const NTSC_UI_STK = [
+    0x0092, 0x8092, 0x0094, 0x8094, 0x0095, 0x8095, 0x0096, 0x8096,
+    0x0097, 0x8097, 0x009B, 0x809B, 0x009F, 0x809F, 0x00A1, 0x80A1,
+    0x00A5, 0x80A5, 0x00A8, 0x80A8, 0x00A7, 0x80A7, 0x00BE, 0x80BE,
+    0x00C0, 0x80C0, 0x00CC, 0x80CC, 0x00CE, 0x80CE, 0x00D1, 0x80D1,
+    0x00D2, 0x80D2
+  ];
+  const NTSC_UI_NEW = [0x00ED, 0x80ED, 0x00F4, 0x80F4, 0x00F1, 0x80F1, ...NTSC_UI_STK];
+
+  const PAL_UI_STK = [
+    0x0093, 0x8093, 0x00FE, 0x80FE, 0x00FF, 0x80FF, 0x009C, 0x809C,
+    0x00A0, 0x80A0, 0x00A2, 0x80A2, 0x00A6, 0x80A6, 0x00BF, 0x80BF,
+    0x00C1, 0x80C1, 0x00CD, 0x80CD, 0x00CF, 0x80CF
+  ];
+  const PAL_UI_NEW = [0x00F3, 0x80F3, ...PAL_UI_STK];
+
+  const NTSC_WL_NEW = [
+    0x00ED, 0x80ED, 0x00F4, 0x80F4, 0x00F1, 0x80F1,
+    0x0021, 0x8021, 0x0023, 0x8023, 0x0026, 0x8026, 0x001C, 0x801C,
+    0x001F, 0x801F, 0x00F9, 0x80F9, 0x00FB, 0x80FB, 0x00FD, 0x80FD,
+    0x008B, 0x808B, 0x0092, 0x8092, 0x0094, 0x8094, 0x0095, 0x8095,
+    0x0096, 0x8096, 0x0097, 0x8097, 0x009F, 0x809F, 0x00A5, 0x80A5,
+    0x00A7, 0x80A7, 0x009B, 0x809B, 0x00A1, 0x80A1, 0x00A8, 0x80A8,
+    0x00BE, 0x80BE, 0x00C0, 0x80C0, 0x00CC, 0x80CC, 0x00CE, 0x80CE,
+    0x00D1, 0x80D1, 0x00D2, 0x80D2
+  ];
+  const PAL_WL_NEW = [
+    0x00F3, 0x80F3,
+    0x0022, 0x8022, 0x0024, 0x8024, 0x001D, 0x801D, 0x00FA, 0x80FA,
+    0x00FC, 0x80FC, 0x008C, 0x808C, 0x0093, 0x8093, 0x00FF, 0x80FF,
+    0x00FE, 0x80FE, 0x00A0, 0x80A0, 0x00A6, 0x80A6, 0x009C, 0x809C,
+    0x00A2, 0x80A2, 0x00BF, 0x80BF, 0x00C1, 0x80C1, 0x00CD, 0x80CD,
+    0x00CF, 0x80CF
+  ];
+
+  // Core control halfwords (4 table pointers + unlimited rec + 2 HDMI-in-6K fixes)
   const PATCHES = [
-    // 1) NTSC Validator Whitelist (0x86F15E30 tail)
-    [0x86F15E8C, 0x00F4, 0x00CE, 'wl_59k30_lo'],
-    [0x86F15E8E, 0x80F4, 0x80CE, 'wl_59k30_hi'],
-    [0x86F15E90, 0x00F1, 0x00D1, 'wl_59k24_lo'],
-    [0x86F15E92, 0x80F1, 0x80D1, 'wl_59k24_hi'],
-    [0x86F15E94, 0x00ED, 0x00D2, 'wl_6k24_lo'],
-    [0x86F15E96, 0x80ED, 0x80D2, 'wl_6k24_hi'],
-
-    // 2) NTSC Master ROM-in-RAM MOV Template (survives Power-Switch OFF/ON)
-    [0x87089604, 0x00F4, 0x00CE, 'rom_59k30_lo'],
-    [0x8708960C, 0x80F4, 0x80CE, 'rom_59k30_hi'],
-    [0x87089614, 0x00F1, 0x00D1, 'rom_59k24_lo'],
-    [0x8708961C, 0x80F1, 0x80D1, 'rom_59k24_hi'],
-    [0x87089624, 0x00ED, 0x00D2, 'rom_6k24_lo'],
-    [0x8708962C, 0x80ED, 0x80D2, 'rom_6k24_hi'],
-
-    // 3) NTSC Active MOV Source Template (0x08A68B6C tail)
-    [0x08A68C4C, 0x00F4, 0x00CE, 'tpl_59k30_lo'],
-    [0x08A68C54, 0x80F4, 0x80CE, 'tpl_59k30_hi'],
-    [0x08A68C5C, 0x00F1, 0x00D1, 'tpl_59k24_lo'],
-    [0x08A68C64, 0x80F1, 0x80D1, 'tpl_59k24_hi'],
-    [0x08A68C6C, 0x00ED, 0x00D2, 'tpl_6k24_lo'],
-    [0x08A68C74, 0x80ED, 0x80D2, 'tpl_6k24_hi'],
-
-    // 4) PAL Validator Whitelist (0x86F15E9A tail: 5.9K 25p)
-    [0x86F15ED6, 0x00F3, 0x00CD, 'wl_59k25_lo'],
-    [0x86F15ED8, 0x80F3, 0x80CD, 'wl_59k25_hi'],
-
-    // 5) PAL Master ROM-in-RAM MOV Template (survives Power-Switch OFF/ON)
-    [0x870896CC, 0x00F3, 0x00CD, 'rom_59k25_lo'],
-    [0x870896D4, 0x80F3, 0x80CD, 'rom_59k25_hi'],
-
-    // 6) PAL Active MOV Source Template (0x08A68C84 tail)
-    [0x08A68D14, 0x00F3, 0x00CD, 'tpl_59k25_lo'],
-    [0x08A68D1C, 0x80F3, 0x80CD, 'tpl_59k25_hi'],
-
-    // 7) Unlimited recording in ALL limited modes (0x86826102 returns 0)
+    [0x86462C34, 0xD440, 0x5E30, 'ptr_ntsc_wl_lo'],
+    [0x86462C36, 0x870D, 0x06F1, 'ptr_ntsc_wl_hi'],
+    [0x86462C40, 0xD4C0, 0x5E9A, 'ptr_pal_wl_lo'],
+    [0x86462C42, 0x870D, 0x06F1, 'ptr_pal_wl_hi'],
+    [0x866931B8, 0xD200, 0x8B6C, 'ptr_ntsc_ui_lo'],
+    [0x866931BA, 0x870D, 0x08A6, 'ptr_ntsc_ui_hi'],
+    [0x866931D4, 0xD360, 0x8C84, 'ptr_pal_ui_lo'],
+    [0x866931D6, 0x870D, 0x08A6, 'ptr_pal_ui_hi'],
     [0x868261B6, 0x2000, 0x4628, 'unlimited_all'],
-
-    // 8) Keep HDMI live during 6K/5.9K recording (NOP out 6K-rec HDMI blanking branches)
     [0x866ACC9C, 0xBF00, 0xD1E7, 'hdmi_live_6k_1'],
     [0x8664425C, 0xBF00, 0xD17B, 'hdmi_live_6k_2'],
-  ];
-
-  // Optional immediate Live UI buffer refresh when NTSC MOV or PAL MOV is already cached
-  const UI_NTSC_PATCHES = [
-    [0x08A6844C, 0x00F4, 0x00CE], [0x08A6844E, 0x0104, 0x0104], [0x08A68454, 0x80F4, 0x80CE],
-    [0x08A6845C, 0x00F1, 0x00D1], [0x08A6845E, 0x0104, 0x0104], [0x08A68464, 0x80F1, 0x80D1],
-    [0x08A6846C, 0x00ED, 0x00D2], [0x08A6846E, 0x0104, 0x0104], [0x08A68474, 0x80ED, 0x80D2],
-  ];
-  const UI_PAL_PATCHES = [
-    [0x08A683FC, 0x00F3, 0x00CD], [0x08A683FE, 0x0104, 0x0104], [0x08A68404, 0x80F3, 0x80CD],
   ];
 
   let dev = null;
@@ -483,7 +490,7 @@
 
     if (next === 'armed') {
       setHeaderStatus(headerText || 'Armed', 'armed');
-      $('logBarTitle').textContent = 'Session log \u00B7 25/25 verified';
+      $('logBarTitle').textContent = 'Session log \u00B7 v1.5 verified';
     } else if (next === 'ready') {
       setHeaderStatus(headerText || 'Ready', 'ready');
       $('logBarTitle').textContent = 'Session log';
@@ -584,6 +591,21 @@
     }
   }
 
+  async function writeUiList(base, qids, flags) {
+    for (let k = 0; k < qids.length; k++) {
+      const a = base + k * 8;
+      await writeHalf(a + 0, qids[k]);
+      await writeHalf(a + 2, flags);
+      await writeHalf(a + 4, 0x0000);
+      await writeHalf(a + 6, 0x0000);
+    }
+    const end = base + qids.length * 8;
+    await writeHalf(end + 0, 0xFFFF);
+    await writeHalf(end + 2, 0x0000);
+    await writeHalf(end + 4, 0x0000);
+    await writeHalf(end + 6, 0x0000);
+  }
+
   async function verifySignatures() {
     for (const [addr, allowed, name] of SIG_CHECKS) {
       const v = await readHalf(addr);
@@ -591,7 +613,7 @@
         throw new Error(`signature mismatch ${name} (${hex8(addr)}=${hex4(v)})`);
       }
     }
-    appendLog('signatures verified (MC801 2.9 \u00B7 19 anchors)');
+    appendLog(`signatures verified (MC801 2.9 \u00B7 ${SIG_CHECKS.length} anchors)`);
   }
 
   async function runCompatCheck(d) {
@@ -617,10 +639,11 @@
         else mismatches.push(`${name}(${hex8(addr)}=${hex4(v)})`);
       }
       const capWord = await readHalf(0x868261B6);
-      const ntscTail = await readHalf(0x08A68C6C);
-      const palTail = await readHalf(0x08A68D14);
-      appendLog(`--- Read-Only Compatibility Report (v1.3) ---`);
-      appendLog(`anchors: ${matched}/${SIG_CHECKS.length} matched | cap=${hex4(capWord)} ntsc=${hex4(ntscTail)} pal=${hex4(palTail)}`);
+      const ptrNtscUiLo = await readHalf(0x866931B8);
+      const ptrPalUiLo = await readHalf(0x866931D4);
+      const hdmi1 = await readHalf(0x866ACC9C);
+      appendLog(`--- Read-Only Compatibility Report (v1.5) ---`);
+      appendLog(`anchors: ${matched}/${SIG_CHECKS.length} matched | cap=${hex4(capWord)} ui=${hex4(ptrNtscUiLo)}/${hex4(ptrPalUiLo)} hdmi=${hex4(hdmi1)}`);
       if (mismatches.length) {
         appendLog('mismatches: ' + mismatches.join(', '));
         $('waitingHint').textContent = `Read-only check: ${matched}/${SIG_CHECKS.length} anchors matched (see log)`;
@@ -634,7 +657,7 @@
         syncButtons();
       } else {
         appendLog('COMPATIBLE: S5 / S5D (MC801 FW 2.9) — zero bytes written.');
-        isUnlocked = (capWord === 0x2000 && ntscTail === 0x00ED && palTail === 0x00F3);
+        isUnlocked = (capWord === 0x2000 && ptrNtscUiLo === 0xD200 && ptrPalUiLo === 0xD360 && hdmi1 === 0xBF00);
         busy = false;
         if (isUnlocked) {
           $('armedHeadline').textContent = 'Safe to unplug USB-C';
@@ -673,9 +696,10 @@
       appendLog(`connected: DC-S5 (04DA:2370, epOut=${epOut}, epIn=${epIn})`);
       await verifySignatures();
       const capWord = await readHalf(0x868261B6);
-      const ntscTail = await readHalf(0x08A68C6C);
-      const palTail = await readHalf(0x08A68D14);
-      isUnlocked = (capWord === 0x2000 && ntscTail === 0x00ED && palTail === 0x00F3);
+      const ptrNtscUiLo = await readHalf(0x866931B8);
+      const ptrPalUiLo = await readHalf(0x866931D4);
+      const hdmi1 = await readHalf(0x866ACC9C);
+      isUnlocked = (capWord === 0x2000 && ptrNtscUiLo === 0xD200 && ptrPalUiLo === 0xD360 && hdmi1 === 0xBF00);
       busy = false;
       if (isUnlocked) {
         $('armedHeadline').textContent = 'Safe to unplug USB-C';
@@ -698,6 +722,14 @@
     setHeaderStatus(unlock ? 'Writing' : 'Restoring', 'ready');
     try {
       await verifySignatures();
+      if (unlock) {
+        await writeUiList(NEW_NTSC_UI, NTSC_UI_NEW, 0x0101);
+        await writeUiList(NEW_PAL_UI,  PAL_UI_NEW,  0x0101);
+        for (let k = 0; k < NTSC_WL_NEW.length; k++) await writeHalf(NEW_NTSC_WL + k * 2, NTSC_WL_NEW[k]);
+        await writeHalf(NEW_NTSC_WL + NTSC_WL_NEW.length * 2, 0xFFFF);
+        for (let k = 0; k < PAL_WL_NEW.length; k++) await writeHalf(NEW_PAL_WL + k * 2, PAL_WL_NEW[k]);
+        await writeHalf(NEW_PAL_WL + PAL_WL_NEW.length * 2, 0xFFFF);
+      }
       for (const [addr, uVal, sVal, name] of PATCHES) {
         const target = unlock ? uVal : sVal;
         await writeHalf(addr, target);
@@ -707,23 +739,32 @@
         }
       }
       // Refresh cached Live UI buffer if NTSC MOV or PAL MOV is already loaded
-      const uiNtsc = await readHalf(0x08A6842C);
-      const uiPal  = await readHalf(0x08A683EC);
-      if (uiNtsc === 0x00C0) {
-        for (const [addr, uVal, sVal] of UI_NTSC_PATCHES) await writeHalf(addr, unlock ? uVal : sVal);
-        appendLog('live UI refreshed (NTSC MOV)');
-      } else if (uiPal === 0x00C1) {
-        for (const [addr, uVal, sVal] of UI_PAL_PATCHES) await writeHalf(addr, unlock ? uVal : sVal);
-        appendLog('live UI refreshed (PAL MOV)');
+      const live0 = await readHalf(LIVE_UI_BASE);
+      if (unlock) {
+        if (live0 === 0x0092 || live0 === 0x00ED) {
+          await writeUiList(LIVE_UI_BASE, NTSC_UI_NEW, 0x0104);
+          appendLog('live UI refreshed (NTSC MOV · top of list)');
+        } else if (live0 === 0x0093 || live0 === 0x00F3) {
+          await writeUiList(LIVE_UI_BASE, PAL_UI_NEW, 0x0104);
+          appendLog('live UI refreshed (PAL MOV · top of list)');
+        }
+      } else {
+        if (live0 === 0x00ED) {
+          await writeUiList(LIVE_UI_BASE, NTSC_UI_STK, 0x0104);
+          appendLog('live UI restored (NTSC MOV)');
+        } else if (live0 === 0x00F3) {
+          await writeUiList(LIVE_UI_BASE, PAL_UI_STK, 0x0104);
+          appendLog('live UI restored (PAL MOV)');
+        }
       }
       isUnlocked = unlock;
       busy = false;
       if (unlock) {
-        appendLog('ok: 25/25 words verified (NTSC 6K24/5.9K24/5.9K30 + PAL 5.9K25 + unlimited)');
+        appendLog('ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + unlimited)');
         $('armedHeadline').textContent = 'Safe to unplug USB-C';
         setUiState('armed', 'Armed');
       } else {
-        appendLog('ok: 25/25 words restored to stock');
+        appendLog('ok: restored 100% stock');
         setUiState('ready', 'Ready');
       }
     } catch (e) {

@@ -1,19 +1,20 @@
 # Lumix DC-S5 (`MC801`, FW 2.9) — Native 6K Open Gate, 5.9K (NTSC + PAL) & Unlimited Recording
 
-**v1.4** — Unlock **native-menu internal 6K 3:2 Open Gate (`5952×3968` 23.98p)**, **5.9K 16:9 (`5888×3312` 23.98p / 29.97p NTSC & 25p PAL)**, **live HDMI monitor output during 6K/5.9K recording**, and **unlimited recording in all limited modes** on the original **Panasonic Lumix DC-S5 (Mark I)** — with **zero flash writes, zero soldering, and 0% brick risk**.
+**v1.5** — Unlock **native-menu internal 6K 3:2 Open Gate (`5952×3968` 23.98p)**, **5.9K 16:9 (`5888×3312` 23.98p / 29.97p NTSC & 25p PAL)**, **live HDMI monitor output during 6K/5.9K recording**, and **unlimited recording in all limited modes** on the original **Panasonic Lumix DC-S5 (Mark I)** — with **zero flash writes, zero stock modes removed, and 0% brick risk**.
 
-- **Live HDMI Output During 6K / 5.9K Recording (NEW in v1.4):** Fixes the stock firmware behavior where HDMI output blanks out when starting/stopping 6K Open Gate or 5.9K recording (`0x866ACC9C` & `0x8664425C` → `NOP`).
+- **Top-of-Menu Placement & Zero Stock Modes Removed (NEW in v1.5):** `6K Open Gate` and `5.9K` now appear right at the **very top** of **Menu → Video → Rec Quality (MOV)** instead of mixed down with 1080p, and **100% of stock recording modes are preserved** (all 17 NTSC + 11 PAL stock MOV modes stay intact!).
+- **Live HDMI Output During 6K / 5.9K Recording (v1.4):** Fixes the stock firmware behavior where HDMI output blanks out when starting/stopping 6K Open Gate or 5.9K recording (`0x866ACC9C` & `0x8664425C` → `NOP`).
 - **Native S5 UI (NTSC & PAL):**
-  - **NTSC (59.94Hz) MOV:** `6K 3:2 Open Gate 23.98p` (`0x00ED`), `5.9K 16:9 23.98p` (`0x00F1`), and `5.9K 16:9 29.97p` (`0x00F4`) appear directly at the bottom of **Menu → Video → Rec Quality (MOV)**.
-  - **PAL (50.00Hz) MOV:** `5.9K 16:9 25.00p` (`0x00F3`) appears directly at the bottom of **Menu → Video → Rec Quality (MOV)**.
+  - **NTSC (59.94Hz) MOV:** `6K 3:2 Open Gate 23.98p` (`0x00ED`), `5.9K 16:9 29.97p` (`0x00F4`), and `5.9K 16:9 23.98p` (`0x00F1`) appear at the **top** of **Menu → Video → Rec Quality (MOV)**.
+  - **PAL (50.00Hz) MOV:** `5.9K 16:9 25.00p` (`0x00F3`) appears at the **top** of **Menu → Video → Rec Quality (MOV)**.
   - Works regardless of whether your camera is currently in MP4, MOV, PAL, or NTSC when you click Unlock.
 - **Unlimited Recording:** Removes both the 30-minute and 15-minute artificial caps across all 4K, C4K, 4K-A 10-bit, 60p, and VFR modes (card capacity and hardware thermal protection stay intact).
 - **Survives Power-Switch OFF/ON (Resets on Battery Pull):** Stays active across normal power-switch cycles via DRAM self-refresh until you open the battery door or pull the battery. Pulling the battery instantly restores 100% factory stock.
-- **100% Reversible (0% Brick Risk):** Verifies **19 static firmware signature anchors** before writing 25 volatile RAM halfwords.
+- **100% Reversible (0% Brick Risk):** Verifies **25 static firmware signature anchors** before writing to volatile RAM.
 
 > [!CAUTION]
 > **Supported hardware & firmware ONLY:** Original **Lumix DC-S5 (Mark I, `MC801`) running stock Firmware 2.9** *(early read-only checks indicate the **Lumix DC-S5D** shares the same memory map — use the **Read-only compatibility check** button first!)*.
-> Both the Android app and WebUSB page verify **19 firmware signature anchors** before writing a single byte and safely abort on any other camera or firmware version. No warranty; use at your own risk.
+> Both the Android app and WebUSB page verify **25 firmware signature anchors** before writing a single byte and safely abort on any other camera or firmware version. No warranty; use at your own risk.
 
 ---
 
@@ -21,40 +22,39 @@
 
 ### Option 1 — Offline Android App (`S5Unlocker.apk`, Recommended for Field Use)
 Works on any USB-C Android phone with USB OTG (**zero Wi-Fi, zero browser**, auto-launches on plug-in):
-1. Download `S5Unlocker.apk` (v1.3) from **Releases** (or build from [`android/`](android/)) and install it on your Android phone.
+1. Download `S5Unlocker.apk` (v1.5) from **Releases** (or build from [`android/`](android/)) and install it on your Android phone.
 2. On the DC-S5, hold **PLAYBACK + AF/AE LOCK** and flip Power **ON** (temporary service mode `04DA:2370`). *(On the **S5D**, set the left drive dial to **Single Shot** first.)*
 3. Plug a USB-C cable between the phone and S5 — **S5 Unlocker** pops up automatically.
-4. Tap **Unlock camera**, wait ~1 second for **Armed**, and unplug the cable.
-5. Set **Rec File Format → MOV**, open **Menu → Video → Rec Quality**, and scroll to the bottom!
+4. Tap **Unlock camera**, wait ~2 seconds for **Armed**, and unplug the cable.
+5. Set **Rec File Format → MOV**, open **Menu → Video → Rec Quality**, and your **6K / 5.9K** modes are right at the **top**!
 
 ### Option 2 — 1-Click Chrome WebUSB (Mac / Windows / Android)
 Open the live hosted page at **https://rileydeacon.github.io/s5-unlocker/** (from [`docs/index.html`](docs/index.html)) in **Google Chrome**:
 1. Boot the DC-S5 holding **PLAYBACK + AF/AE LOCK** + Power **ON** *(S5D: left drive dial on **Single Shot**)*.
 2. Plug USB-C into your Mac, PC, or Android phone.
-3. Click **Connect USB** → **Unlock camera** → unplug and shoot — or click **Read-only compatibility check** to inspect all 19 anchors with zero writes.
+3. Click **Connect USB** → **Unlock camera** → unplug and shoot — or click **Read-only compatibility check** to inspect all 25 anchors with zero writes.
 *(Note: iOS / iPadOS Safari does not support WebUSB.)*
 
 ### Option 3 — macOS Command-Line Tool
-Build and run [`mac-cli/s5_59k_branch.c`](mac-cli/s5_59k_branch.c) with `clang -O2 -framework IOKit -framework CoreFoundation mac-cli/s5_59k_branch.c -o s5_59k_branch` (`v13_check`, `v13_enable --confirm-write`, `v13_restore --confirm-write`).
+Build and run [`mac-cli/s5_v15_test.c`](mac-cli/s5_v15_test.c) with `clang -O2 -framework IOKit -framework CoreFoundation mac-cli/s5_v15_test.c -o s5_unlocker` (`check`, `enable --confirm-write`, `restore --confirm-write`).
 
 ---
 
 ## How It Works (MC801 FW 2.9 Volatile RAM Map)
 
-The DC-S5's Venus Engine already contains the 2-core HEVC tile-split encoder (`3072+2880` for `5952×3968`; `2944+2944` for `5888×3312`), the live movie-quality table (`0x08AA45E0`), and the built-in `6K` / `5.9K` UI glyphs & strings. v1.3 swaps low-priority FHD MOV slots across both NTSC and PAL tables and bypasses the recording-limit getter in `0x86826102`:
+The DC-S5's Venus Engine already contains the 2-core HEVC tile-split encoder (`3072+2880` for `5952×3968`; `2944+2944` for `5888×3312`), the live movie-quality table (`0x08AA45E0`), and the built-in `6K` / `5.9K` UI glyphs & strings. v1.5 writes expanded NTSC/PAL MOV UI & whitelist tables into unused volatile RAM (`0x870DD200`–`0x870DD510`) with `6K`/`5.9K` prepended at the top and all stock modes preserved, redirects the 4 table pointers, and patches the recording-limit & 6K-HDMI checks:
 
 | Structure | Address | Unlock → Stock | Purpose |
 | :--- | :--- | :--- | :--- |
-| NTSC Validator Whitelist | `0x86F15E8C`–`96` | `00F4/80F4/00F1/80F1/00ED/80ED` → `00CE..80D2` | Allows 5.9K30, 5.9K24, 6K24 in `0x864629B2` |
-| NTSC Master ROM-in-RAM Template | `0x87089604`–`2C` | `00F4/80F4/00F1/80F1/00ED/80ED` → `00CE..80D2` | Survives soft Power-Switch OFF/ON wake-up |
-| NTSC Active MOV Template | `0x08A68C4C`–`74` | `00F4/80F4/00F1/80F1/00ED/80ED` → `00CE..80D2` | Copied into live UI buffer by `0x866930B6` |
-| PAL Validator Whitelist | `0x86F15ED6`–`D8` | `00F3/80F3` → `00CD/80CD` | Allows 5.9K 25p in PAL (50.00Hz) |
-| PAL Master ROM-in-RAM Template | `0x870896CC`–`D4` | `00F3/80F3` → `00CD/80CD` | Survives soft Power-Switch OFF/ON wake-up |
-| PAL Active MOV Template | `0x08A68D14`–`1C` | `00F3/80F3` → `00CD/80CD` | Copied into live UI buffer in PAL MOV |
+| Expanded MOV UI & Whitelist Tables | `0x870DD200`–`0x870DD510` | 20 NTSC + 12 PAL MOV entries | `6K`/`5.9K` at top + 100% of stock modes preserved |
+| NTSC Whitelist Pointer | `0x86462C34` | `0x870DD440` → `0x06F15E30` | Allows `6K24`, `5.9K30`, `5.9K24` + all stock NTSC modes |
+| PAL Whitelist Pointer | `0x86462C40` | `0x870DD4C0` → `0x06F15E9A` | Allows `5.9K25` + all stock PAL modes |
+| NTSC MOV Template Pointer | `0x866931B8` | `0x870DD200` → `0x08A68B6C` | Populates MOV Rec Quality list (survives soft Power OFF/ON) |
+| PAL MOV Template Pointer | `0x866931D4` | `0x870DD360` → `0x08A68C84` | Populates PAL MOV Rec Quality list (survives soft Power OFF/ON) |
 | Recording Limit Getter | `0x868261B6` | `0x2000` (`movs r0, #0`) → `0x4628` | Removes 30-min & 15-min caps across all modes |
 | 6K/5.9K HDMI Blanking Checks | `0x866ACC9C`, `0x8664425C` | `0xBF00` (`nop`) → `0xD1E7`, `0xD17B` | Keeps external HDMI feed live during 6K/5.9K recording |
 
-*(Note: 5.4K Open Gate `0x00EF`/`0x00F0` is intentionally excluded because its `5376×3584` pipeline stalls on record on the S5.)*
+*(Note: 5.4K Open Gate `0x00EF`/`0x00F0` and True 24.00p `0x00EE` are intentionally excluded because Panasonic compiled out their sensor timing/readout tables on the S5.)*
 
 ---
 

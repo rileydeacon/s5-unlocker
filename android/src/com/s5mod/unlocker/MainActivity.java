@@ -54,7 +54,7 @@ public class MainActivity extends Activity {
 
     private enum UiState { WAITING, READY, ARMED }
 
-    // MC801 FW 2.9 static signature anchors (21 halfwords, independent of MP4/MOV/PAL/NTSC state)
+    // MC801 FW 2.9 static signature anchors (25 halfwords, independent of MP4/MOV/PAL/NTSC state)
     private static final int[][] SIG_CHECKS = {
         {0x866B493A, 0x2801, -1},
         {0x866B493E, 0xB2E0, -1},
@@ -65,6 +65,14 @@ public class MainActivity extends Activity {
         {0x868261B8, 0xE8BD, -1},
         {0x866ACC9C, 0xD1E7, 0xBF00},
         {0x8664425C, 0xD17B, 0xBF00},
+        {0x86462C34, 0x5E30, 0xD440},
+        {0x86462C36, 0x06F1, 0x870D},
+        {0x86462C40, 0x5E9A, 0xD4C0},
+        {0x86462C42, 0x06F1, 0x870D},
+        {0x866931B8, 0x8B6C, 0xD200},
+        {0x866931BA, 0x08A6, 0x870D},
+        {0x866931D4, 0x8C84, 0xD360},
+        {0x866931D6, 0x08A6, 0x870D},
         {0x86F15E84, 0x00C0, -1},
         {0x86F15E98, 0xFFFF, -1},
         {0x86F15ED2, 0x00C1, -1},
@@ -73,66 +81,73 @@ public class MainActivity extends Activity {
         {0x87089634, 0xFFFF, -1},
         {0x870896BC, 0x00C1, -1},
         {0x870896EC, 0xFFFF, -1},
-        {0x08A68C2C, 0x00C0, -1},
-        {0x08A68C7C, 0xFFFF, -1},
-        {0x08A68D04, 0x00C1, -1},
-        {0x08A68D34, 0xFFFF, -1},
     };
 
-    // v1.3: 25 volatile RAM halfwords (NTSC 6K24/5.9K24/5.9K30 + PAL 5.9K25 + Unlimited, suspend-safe)
+    // v1.5: Expanded tables in unused volatile RAM (6K/5.9K at top of MOV + zero stock modes removed)
+    private static final int NEW_NTSC_UI  = 0x870DD200;
+    private static final int NEW_PAL_UI   = 0x870DD360;
+    private static final int NEW_NTSC_WL  = 0x870DD440;
+    private static final int NEW_PAL_WL   = 0x870DD4C0;
+    private static final int LIVE_UI_BASE = 0x08A6836C;
+
+    private static final int[] NTSC_UI_STK = {
+        0x0092, 0x8092, 0x0094, 0x8094, 0x0095, 0x8095, 0x0096, 0x8096,
+        0x0097, 0x8097, 0x009B, 0x809B, 0x009F, 0x809F, 0x00A1, 0x80A1,
+        0x00A5, 0x80A5, 0x00A8, 0x80A8, 0x00A7, 0x80A7, 0x00BE, 0x80BE,
+        0x00C0, 0x80C0, 0x00CC, 0x80CC, 0x00CE, 0x80CE, 0x00D1, 0x80D1,
+        0x00D2, 0x80D2
+    };
+    private static final int[] NTSC_UI_NEW = {
+        0x00ED, 0x80ED, 0x00F4, 0x80F4, 0x00F1, 0x80F1,
+        0x0092, 0x8092, 0x0094, 0x8094, 0x0095, 0x8095, 0x0096, 0x8096,
+        0x0097, 0x8097, 0x009B, 0x809B, 0x009F, 0x809F, 0x00A1, 0x80A1,
+        0x00A5, 0x80A5, 0x00A8, 0x80A8, 0x00A7, 0x80A7, 0x00BE, 0x80BE,
+        0x00C0, 0x80C0, 0x00CC, 0x80CC, 0x00CE, 0x80CE, 0x00D1, 0x80D1,
+        0x00D2, 0x80D2
+    };
+    private static final int[] PAL_UI_STK = {
+        0x0093, 0x8093, 0x00FE, 0x80FE, 0x00FF, 0x80FF, 0x009C, 0x809C,
+        0x00A0, 0x80A0, 0x00A2, 0x80A2, 0x00A6, 0x80A6, 0x00BF, 0x80BF,
+        0x00C1, 0x80C1, 0x00CD, 0x80CD, 0x00CF, 0x80CF
+    };
+    private static final int[] PAL_UI_NEW = {
+        0x00F3, 0x80F3,
+        0x0093, 0x8093, 0x00FE, 0x80FE, 0x00FF, 0x80FF, 0x009C, 0x809C,
+        0x00A0, 0x80A0, 0x00A2, 0x80A2, 0x00A6, 0x80A6, 0x00BF, 0x80BF,
+        0x00C1, 0x80C1, 0x00CD, 0x80CD, 0x00CF, 0x80CF
+    };
+    private static final int[] NTSC_WL_NEW = {
+        0x00ED, 0x80ED, 0x00F4, 0x80F4, 0x00F1, 0x80F1,
+        0x0021, 0x8021, 0x0023, 0x8023, 0x0026, 0x8026, 0x001C, 0x801C,
+        0x001F, 0x801F, 0x00F9, 0x80F9, 0x00FB, 0x80FB, 0x00FD, 0x80FD,
+        0x008B, 0x808B, 0x0092, 0x8092, 0x0094, 0x8094, 0x0095, 0x8095,
+        0x0096, 0x8096, 0x0097, 0x8097, 0x009F, 0x809F, 0x00A5, 0x80A5,
+        0x00A7, 0x80A7, 0x009B, 0x809B, 0x00A1, 0x80A1, 0x00A8, 0x80A8,
+        0x00BE, 0x80BE, 0x00C0, 0x80C0, 0x00CC, 0x80CC, 0x00CE, 0x80CE,
+        0x00D1, 0x80D1, 0x00D2, 0x80D2
+    };
+    private static final int[] PAL_WL_NEW = {
+        0x00F3, 0x80F3,
+        0x0022, 0x8022, 0x0024, 0x8024, 0x001D, 0x801D, 0x00FA, 0x80FA,
+        0x00FC, 0x80FC, 0x008C, 0x808C, 0x0093, 0x8093, 0x00FF, 0x80FF,
+        0x00FE, 0x80FE, 0x00A0, 0x80A0, 0x00A6, 0x80A6, 0x009C, 0x809C,
+        0x00A2, 0x80A2, 0x00BF, 0x80BF, 0x00C1, 0x80C1, 0x00CD, 0x80CD,
+        0x00CF, 0x80CF
+    };
+
+    // Core control halfwords (4 table pointers + unlimited rec + 2 HDMI-in-6K fixes)
     private static final int[][] PATCHES = {
-        // 1) NTSC Validator Whitelist (0x86F15E30 tail)
-        {0x86F15E8C, 0x00F4, 0x00CE},
-        {0x86F15E8E, 0x80F4, 0x80CE},
-        {0x86F15E90, 0x00F1, 0x00D1},
-        {0x86F15E92, 0x80F1, 0x80D1},
-        {0x86F15E94, 0x00ED, 0x00D2},
-        {0x86F15E96, 0x80ED, 0x80D2},
-
-        // 2) NTSC Master ROM-in-RAM MOV Template (survives soft power-off/on)
-        {0x87089604, 0x00F4, 0x00CE},
-        {0x8708960C, 0x80F4, 0x80CE},
-        {0x87089614, 0x00F1, 0x00D1},
-        {0x8708961C, 0x80F1, 0x80D1},
-        {0x87089624, 0x00ED, 0x00D2},
-        {0x8708962C, 0x80ED, 0x80D2},
-
-        // 3) NTSC Active MOV Source Template (0x08A68B6C tail)
-        {0x08A68C4C, 0x00F4, 0x00CE},
-        {0x08A68C54, 0x80F4, 0x80CE},
-        {0x08A68C5C, 0x00F1, 0x00D1},
-        {0x08A68C64, 0x80F1, 0x80D1},
-        {0x08A68C6C, 0x00ED, 0x00D2},
-        {0x08A68C74, 0x80ED, 0x80D2},
-
-        // 4) PAL Validator Whitelist (0x86F15E9A tail: 5.9K 25p)
-        {0x86F15ED6, 0x00F3, 0x00CD},
-        {0x86F15ED8, 0x80F3, 0x80CD},
-
-        // 5) PAL Master ROM-in-RAM MOV Template (survives soft power-off/on)
-        {0x870896CC, 0x00F3, 0x00CD},
-        {0x870896D4, 0x80F3, 0x80CD},
-
-        // 6) PAL Active MOV Source Template (0x08A68C84 tail)
-        {0x08A68D14, 0x00F3, 0x00CD},
-        {0x08A68D1C, 0x80F3, 0x80CD},
-
-        // 7) Unlimited recording in ALL limited modes (0x86826102 returns 0)
+        {0x86462C34, 0xD440, 0x5E30},
+        {0x86462C36, 0x870D, 0x06F1},
+        {0x86462C40, 0xD4C0, 0x5E9A},
+        {0x86462C42, 0x870D, 0x06F1},
+        {0x866931B8, 0xD200, 0x8B6C},
+        {0x866931BA, 0x870D, 0x08A6},
+        {0x866931D4, 0xD360, 0x8C84},
+        {0x866931D6, 0x870D, 0x08A6},
         {0x868261B6, 0x2000, 0x4628},
-
-        // 8) Keep HDMI live during 6K/5.9K recording (NOP out 6K-rec HDMI blanking branches)
         {0x866ACC9C, 0xBF00, 0xD1E7},
         {0x8664425C, 0xBF00, 0xD17B},
-    };
-
-    // Conditional Live UI buffer refresh when NTSC MOV or PAL MOV is already cached
-    private static final int[][] UI_NTSC_PATCHES = {
-        {0x08A6844C, 0x00F4, 0x00CE}, {0x08A6844E, 0x0104, 0x0104}, {0x08A68454, 0x80F4, 0x80CE},
-        {0x08A6845C, 0x00F1, 0x00D1}, {0x08A6845E, 0x0104, 0x0104}, {0x08A68464, 0x80F1, 0x80D1},
-        {0x08A6846C, 0x00ED, 0x00D2}, {0x08A6846E, 0x0104, 0x0104}, {0x08A68474, 0x80ED, 0x80D2},
-    };
-    private static final int[][] UI_PAL_PATCHES = {
-        {0x08A683FC, 0x00F3, 0x00CD}, {0x08A683FE, 0x0104, 0x0104}, {0x08A68404, 0x80F3, 0x80CD},
     };
 
     private UsbManager usbManager;
@@ -530,15 +545,16 @@ public class MainActivity extends Activity {
         surface.addView(wellRow);
 
         TextView heading = new TextView(this);
-        heading.setText("Modes to enable (v1.4)");
+        heading.setText("Modes to enable (v1.5)");
         heading.setTextColor(C_NEEDLE);
         heading.setTextSize(15);
         heading.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         heading.setPadding(0, 0, 0, dp(12));
         surface.addView(heading);
 
-        addSpecRow(surface, "6K Open Gate", "5952\u00D73968 \u00B7 23.98p \u00B7 NTSC", C_LIGHT, C_DIM);
-        addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL", C_LIGHT, C_DIM);
+        addSpecRow(surface, "6K Open Gate", "5952\u00D73968 \u00B7 23.98p \u00B7 top of MOV", C_LIGHT, C_DIM);
+        addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL \u00B7 top", C_LIGHT, C_DIM);
+        addSpecRow(surface, "Stock modes", "100% preserved \u00B7 zero removed", C_LIGHT, C_DIM);
         addSpecRow(surface, "HDMI output", "Live during 6K/5.9K rec", C_LIGHT, C_DIM);
         addSpecRow(surface, "Recording limit", "Unlimited \u00B7 all modes", C_LIGHT, C_DIM);
         addSpecRow(surface, "Power switch", "Survives until battery pull", C_LIGHT, C_DIM);
@@ -555,7 +571,7 @@ public class MainActivity extends Activity {
         action.addView(btnUnlock);
 
         readySubNote = new TextView(this);
-        readySubNote.setText("19 signatures verified \u00B7 25 RAM words");
+        readySubNote.setText("25 signatures verified \u00B7 zero flash writes");
         readySubNote.setTextColor(C_DIM);
         readySubNote.setTextSize(11);
         readySubNote.setTypeface(Typeface.MONOSPACE);
@@ -610,9 +626,9 @@ public class MainActivity extends Activity {
         addWell(wellRow, "State", "Armed", false);
         surface.addView(wellRow);
 
-        addSpecRow(surface, "6K Open Gate", "23.98p \u00B7 NTSC MOV", C_NEEDLE, C_LIGHT);
+        addSpecRow(surface, "6K Open Gate", "23.98p \u00B7 top of NTSC MOV", C_NEEDLE, C_LIGHT);
         addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL", C_NEEDLE, C_LIGHT);
-        addSpecRow(surface, "Recording limit", "Unlimited", C_NEEDLE, C_LIGHT);
+        addSpecRow(surface, "HDMI & limit", "Live HDMI \u00B7 Unlimited", C_NEEDLE, C_LIGHT);
 
         wrap.addView(surface);
 
@@ -630,7 +646,7 @@ public class MainActivity extends Activity {
         bottom.addView(armedHeadline);
 
         TextView sub = new TextView(this);
-        sub.setText("Rec Quality (MOV) \u2192 scroll to bottom");
+        sub.setText("Rec Quality (MOV) \u2192 right at the top");
         sub.setTextColor(C_DIM);
         sub.setTextSize(11);
         sub.setGravity(Gravity.CENTER);
@@ -733,7 +749,7 @@ public class MainActivity extends Activity {
             applyUiState();
             if (next == UiState.ARMED) {
                 showHeaderStatus(headerText, C_SIGNAL, C_NEEDLE);
-                logBarTitle.setText("Session log \u00B7 25/25 verified");
+                logBarTitle.setText("Session log \u00B7 v1.5 verified");
             } else if (next == UiState.READY) {
                 showHeaderStatus(headerText, C_LIGHT, C_LIGHT);
                 logBarTitle.setText("Session log");
@@ -846,9 +862,10 @@ public class MainActivity extends Activity {
                 appendLog("connected: DC-S5 (04DA:2370)");
                 verifySignatures();
                 int capWord = readHalf(0x868261B6);
-                int ntscTail = readHalf(0x08A68C6C);
-                int palTail = readHalf(0x08A68D14);
-                isUnlocked = (capWord == 0x2000 && ntscTail == 0x00ED && palTail == 0x00F3);
+                int ptrNtscUiLo = readHalf(0x866931B8);
+                int ptrPalUiLo = readHalf(0x866931D4);
+                int hdmi1 = readHalf(0x866ACC9C);
+                isUnlocked = (capWord == 0x2000 && ptrNtscUiLo == 0xD200 && ptrPalUiLo == 0xD360 && hdmi1 == 0xBF00);
                 busy = false;
                 if (isUnlocked) {
                     runOnUiThread(() -> armedHeadline.setText("Safe to unplug USB-C"));
@@ -868,6 +885,21 @@ public class MainActivity extends Activity {
         }).start();
     }
 
+    private void writeUiList(int base, int[] qids, int flags) throws Exception {
+        for (int k = 0; k < qids.length; k++) {
+            int a = base + k * 8;
+            writeHalf(a + 0, qids[k]);
+            writeHalf(a + 2, flags);
+            writeHalf(a + 4, 0x0000);
+            writeHalf(a + 6, 0x0000);
+        }
+        int end = base + qids.length * 8;
+        writeHalf(end + 0, 0xFFFF);
+        writeHalf(end + 2, 0x0000);
+        writeHalf(end + 4, 0x0000);
+        writeHalf(end + 6, 0x0000);
+    }
+
     private void applyAllAsync(boolean unlock) {
         if (busy || conn == null) return;
         busy = true;
@@ -877,6 +909,14 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 verifySignatures();
+                if (unlock) {
+                    writeUiList(NEW_NTSC_UI, NTSC_UI_NEW, 0x0101);
+                    writeUiList(NEW_PAL_UI,  PAL_UI_NEW,  0x0101);
+                    for (int k = 0; k < NTSC_WL_NEW.length; k++) writeHalf(NEW_NTSC_WL + k * 2, NTSC_WL_NEW[k]);
+                    writeHalf(NEW_NTSC_WL + NTSC_WL_NEW.length * 2, 0xFFFF);
+                    for (int k = 0; k < PAL_WL_NEW.length; k++) writeHalf(NEW_PAL_WL + k * 2, PAL_WL_NEW[k]);
+                    writeHalf(NEW_PAL_WL + PAL_WL_NEW.length * 2, 0xFFFF);
+                }
                 for (int[] p : PATCHES) {
                     int addr = p[0];
                     int target = unlock ? p[1] : p[2];
@@ -887,23 +927,32 @@ public class MainActivity extends Activity {
                                 "verify mismatch 0x%08X: got 0x%04X want 0x%04X", addr, rb, target));
                     }
                 }
-                int uiNtsc = readHalf(0x08A6842C);
-                int uiPal = readHalf(0x08A683EC);
-                if (uiNtsc == 0x00C0) {
-                    for (int[] p : UI_NTSC_PATCHES) writeHalf(p[0], unlock ? p[1] : p[2]);
-                    appendLog("live UI refreshed (NTSC MOV)");
-                } else if (uiPal == 0x00C1) {
-                    for (int[] p : UI_PAL_PATCHES) writeHalf(p[0], unlock ? p[1] : p[2]);
-                    appendLog("live UI refreshed (PAL MOV)");
+                int live0 = readHalf(LIVE_UI_BASE);
+                if (unlock) {
+                    if (live0 == 0x0092 || live0 == 0x00ED) {
+                        writeUiList(LIVE_UI_BASE, NTSC_UI_NEW, 0x0104);
+                        appendLog("live UI refreshed (NTSC MOV \u00B7 top of list)");
+                    } else if (live0 == 0x0093 || live0 == 0x00F3) {
+                        writeUiList(LIVE_UI_BASE, PAL_UI_NEW, 0x0104);
+                        appendLog("live UI refreshed (PAL MOV \u00B7 top of list)");
+                    }
+                } else {
+                    if (live0 == 0x00ED) {
+                        writeUiList(LIVE_UI_BASE, NTSC_UI_STK, 0x0104);
+                        appendLog("live UI restored (NTSC MOV)");
+                    } else if (live0 == 0x00F3) {
+                        writeUiList(LIVE_UI_BASE, PAL_UI_STK, 0x0104);
+                        appendLog("live UI restored (PAL MOV)");
+                    }
                 }
                 isUnlocked = unlock;
                 busy = false;
                 if (unlock) {
-                    appendLog("ok: 25/25 words verified (NTSC 6K24/5.9K24/5.9K30 + PAL 5.9K25 + unlimited)");
+                    appendLog("ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + unlimited)");
                     runOnUiThread(() -> armedHeadline.setText("Safe to unplug USB-C"));
                     setUiState(UiState.ARMED, "Armed");
                 } else {
-                    appendLog("ok: 25/25 words restored to stock");
+                    appendLog("ok: restored 100% stock");
                     setUiState(UiState.READY, "Ready");
                 }
             } catch (Exception e) {
@@ -1006,6 +1055,6 @@ public class MainActivity extends Activity {
                         "signature mismatch 0x%08X (got 0x%04X)", addr, v));
             }
         }
-        appendLog("signatures verified (MC801 2.9 \u00B7 19 anchors)");
+        appendLog("signatures verified (MC801 2.9 \u00B7 " + SIG_CHECKS.length + " anchors)");
     }
 }
