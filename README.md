@@ -30,7 +30,7 @@ Works regardless of whether your camera is set to MP4, MOV, PAL, or NTSC when yo
 
 ## Quick Start
 
-Before removing the battery, select a stock recording mode. The camera may remember the selected mode after a cold boot clears the RAM patches.
+Before removing the battery, select a stock recording mode. The camera may remember the selected mode after a cold boot clears the RAM patches. Do not unplug the USB cable during the ~2-second arming step; if a write is ever interrupted or the camera behaves unexpectedly, remove and reinsert the battery to clear volatile RAM and return to 100% stock.
 
 ### Option 1: Offline Android App (`S5Unlocker.apk`)
 
@@ -102,7 +102,7 @@ v1.5 writes expanded NTSC and PAL MOV menu/whitelist tables into unused volatile
 | Recording Limit Getter | `0x868261B6` | `0x2000` (`movs r0, #0`) → `0x4628` | Removes fixed 30-minute and 15-minute recording timers |
 | 6K/5.9K HDMI Blanking Checks | `0x866ACC9C`, `0x8664425C` | `0xBF00` (`nop`) → `0xD1E7`, `0xD17B` | Keeps external HDMI feed live during 6K/5.9K recording |
 
-5.4K Open Gate and true 24.00p are excluded from v1.5.
+5.4K Open Gate, PAL 6K 25p Open Gate (FW 2.9 has no 6K 25p Open Gate mode; PAL users get 5.9K 16:9 25p instead), and true 24.00p are excluded from v1.5.
 
 ---
 
