@@ -2,21 +2,21 @@
 
 The #1 question about **S5 Unlocker** is: *"Can you make it permanent so it survives a battery swap?"*
 
-Here is the honest technical answer — and the **3 practical, 0%-brick-risk ways** to shoot all day without a phone or laptop.
+Here is how v1.5 behaves across power cycles and battery swaps.
 
 ---
 
 ## Why S5 Unlocker Does Not Write to Flash
-1. **0% Brick Risk:** Writing to internal NAND flash or the bootloader carries a real risk of permanently bricking a \$1,000+ camera body if anything goes wrong.
+1. **Volatile RAM only.** The v1.5 installer writes its patches to volatile RAM.
 2. **Firmware Signing:** Panasonic `.UPD` firmware updates are protected by **ECDSA P-256** cryptographic signatures, and a full 22.5 MiB scan of the DC-S5 RTOS confirmed there is **no Canon `BOOTDISK`-style SD-card code autoloader**.
-3. **Clean Safety Guarantee:** Staying 100% in volatile DRAM means pulling the battery for 5 seconds *always* guarantees a 100% factory-stock camera.
+3. **Cold boot clears the patches.** Select a stock recording mode before removing the battery. The camera may remember the selected mode.
 
 ---
 
-## 3 Zero-Brick-Risk Ways to Survive All-Day Shoots Today
+## Power Options for Longer Shoots
 
 ### 1. Normal Power-Switch OFF/ON (Already Built-In!)
-You do **not** need to re-unlock between takes or when turning the camera off. Flipping the power switch **OFF and back ON** keeps DRAM self-refreshed — **6K Open Gate, 5.9K, and Unlimited Recording all survive** as long as the battery door stays closed.
+You do **not** need to re-unlock between takes or when turning the camera off. Flipping the power switch **OFF and back ON** keeps DRAM self-refreshed — **6K Open Gate, 5.9K, and fixed recording timer removal all survive** as long as the battery door stays closed.
 
 ### 2. All-Day Power Without Opening the Battery Door
 - **DMW-BGS5 Battery Grip (Best for Handheld):** Keep a charged battery in the camera body and hot-swap batteries in the grip all day — the body battery keeps volatile RAM alive continuously!
@@ -26,7 +26,7 @@ You do **not** need to re-unlock between takes or when turning the camera off. F
 If you swap internal batteries frequently and don't want to pull out an Android phone or laptop, you can build a thumb-drive-sized **USB-C Host auto-arm dongle** that lives in your battery pouch:
 1. Swap your battery and boot the S5 in Service Mode (**PLAYBACK + AF/AE LOCK + Power ON**).
 2. Plug the tiny dongle into the S5's USB-C port for **~1 second** until its LED turns green.
-3. Unplug and shoot — no phone, no app, no laptop, **0% brick risk**.
+3. Unplug the dongle once it reports that the RAM patches are applied.
 
 #### Recommended Off-the-Shelf Hardware (\$5–\$12, Zero Soldering)
 Any microcontroller board with **native USB Host (OTG)** support and a USB-C port (or USB-A + tiny C-to-C adapter):

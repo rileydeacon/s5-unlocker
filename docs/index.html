@@ -318,7 +318,7 @@
         <div class="spec-row"><span class="spec-l">5.9K Full</span><span class="spec-r">23.98p / 29.97p / 25p PAL &middot; top</span></div>
         <div class="spec-row"><span class="spec-l">Stock modes</span><span class="spec-r">100% preserved &middot; zero removed</span></div>
         <div class="spec-row"><span class="spec-l">HDMI output</span><span class="spec-r">Live during 6K/5.9K rec</span></div>
-        <div class="spec-row"><span class="spec-l">Recording limit</span><span class="spec-r">Unlimited &middot; all modes</span></div>
+        <div class="spec-row"><span class="spec-l">Recording</span><span class="spec-r">Fixed recording timers removed</span></div>
         <div class="spec-row"><span class="spec-l">Power switch</span><span class="spec-r">Survives until battery pull</span></div>
       </div>
       <div class="action-area">
@@ -344,12 +344,12 @@
         </div>
         <div class="spec-row"><span class="spec-l">6K Open Gate</span><span class="spec-r">23.98p &middot; top of NTSC MOV</span></div>
         <div class="spec-row"><span class="spec-l">5.9K Full</span><span class="spec-r">23.98p / 29.97p / 25p PAL</span></div>
-        <div class="spec-row"><span class="spec-l">HDMI &amp; limit</span><span class="spec-r">Live HDMI &middot; Unlimited</span></div>
+        <div class="spec-row"><span class="spec-l">HDMI &amp; recording</span><span class="spec-r">Live HDMI &middot; Fixed timers removed</span></div>
       </div>
       <div class="action-area">
         <p id="armedHeadline" class="armed-headline">Safe to unplug USB-C</p>
         <p class="armed-sub">Rec Quality (MOV) &rarr; right at the top</p>
-        <button id="btnRestore" class="btn-secondary">Restore stock</button>
+        <button id="btnRestore" class="btn-secondary">Remove RAM patches</button>
       </div>
     </section>
 
@@ -508,7 +508,7 @@
     $('btnUnlock').textContent = busy ? 'Unlocking\u2026' : 'Unlock camera';
     $('btnRestore').classList.toggle('hidden', !connected);
     $('btnRestore').disabled = !connected || busy;
-    $('btnRestore').textContent = busy ? 'Restoring\u2026' : 'Restore stock';
+    $('btnRestore').textContent = busy ? 'Removing\u2026' : 'Remove RAM patches';
   }
 
   function frameSum(arr, len = arr.length) {
@@ -656,14 +656,14 @@
         setHeaderStatus(`${matched}/${SIG_CHECKS.length}`, 'ready');
         syncButtons();
       } else {
-        appendLog('COMPATIBLE: S5 / S5D (MC801 FW 2.9) — zero bytes written.');
+        appendLog('Signature check passed (25/25). No patches applied by this check.');
         isUnlocked = (capWord === 0x2000 && ptrNtscUiLo === 0xD200 && ptrPalUiLo === 0xD360 && hdmi1 === 0xBF00);
         busy = false;
         if (isUnlocked) {
           $('armedHeadline').textContent = 'Safe to unplug USB-C';
           setUiState('armed', 'Armed');
         } else {
-          setUiState('ready', 'Compatible');
+          setUiState('ready', 'Signature check passed');
         }
         logExpanded = true;
         $('logBox').classList.remove('hidden');
@@ -760,11 +760,11 @@
       isUnlocked = unlock;
       busy = false;
       if (unlock) {
-        appendLog('ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + unlimited)');
+        appendLog('ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + fixed recording timers removed)');
         $('armedHeadline').textContent = 'Safe to unplug USB-C';
         setUiState('armed', 'Armed');
       } else {
-        appendLog('ok: restored 100% stock');
+        appendLog('ok: RAM patches removed');
         setUiState('ready', 'Ready');
       }
     } catch (e) {

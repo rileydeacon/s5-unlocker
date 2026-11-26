@@ -556,7 +556,7 @@ public class MainActivity extends Activity {
         addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL \u00B7 top", C_LIGHT, C_DIM);
         addSpecRow(surface, "Stock modes", "100% preserved \u00B7 zero removed", C_LIGHT, C_DIM);
         addSpecRow(surface, "HDMI output", "Live during 6K/5.9K rec", C_LIGHT, C_DIM);
-        addSpecRow(surface, "Recording limit", "Unlimited \u00B7 all modes", C_LIGHT, C_DIM);
+        addSpecRow(surface, "Recording", "Fixed recording timers removed", C_LIGHT, C_DIM);
         addSpecRow(surface, "Power switch", "Survives until battery pull", C_LIGHT, C_DIM);
 
         wrap.addView(surface);
@@ -628,11 +628,11 @@ public class MainActivity extends Activity {
 
         addSpecRow(surface, "6K Open Gate", "23.98p \u00B7 top of NTSC MOV", C_NEEDLE, C_LIGHT);
         addSpecRow(surface, "5.9K Full", "23.98p / 29.97p / 25p PAL", C_NEEDLE, C_LIGHT);
-        addSpecRow(surface, "HDMI & limit", "Live HDMI \u00B7 Unlimited", C_NEEDLE, C_LIGHT);
+        addSpecRow(surface, "HDMI & recording", "Live HDMI \u00B7 Fixed timers removed", C_NEEDLE, C_LIGHT);
 
         wrap.addView(surface);
 
-        // Calm confirmation + Restore stock
+        // Calm confirmation + Remove RAM patches
         LinearLayout bottom = new LinearLayout(this);
         bottom.setOrientation(LinearLayout.VERTICAL);
         bottom.setPadding(dp(20), dp(24), dp(20), dp(16));
@@ -653,7 +653,7 @@ public class MainActivity extends Activity {
         sub.setPadding(0, dp(4), 0, dp(20));
         bottom.addView(sub);
 
-        btnRestore = makeButton("Restore stock", C_HOVER, C_LIGHT, 13, 13);
+        btnRestore = makeButton("Remove RAM patches", C_HOVER, C_LIGHT, 13, 13);
         btnRestore.setOnClickListener(v -> applyAllAsync(false));
         bottom.addView(btnRestore);
 
@@ -776,7 +776,7 @@ public class MainActivity extends Activity {
         btnRestore.setVisibility(connected ? View.VISIBLE : View.GONE);
         btnRestore.setEnabled(connected && !busy);
         btnRestore.setAlpha((connected && !busy) ? 1.0f : 0.45f);
-        btnRestore.setText(busy ? "Restoring\u2026" : "Restore stock");
+        btnRestore.setText(busy ? "Removing\u2026" : "Remove RAM patches");
     }
 
     private void appendLog(String line) {
@@ -948,11 +948,11 @@ public class MainActivity extends Activity {
                 isUnlocked = unlock;
                 busy = false;
                 if (unlock) {
-                    appendLog("ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + unlimited)");
+                    appendLog("ok: v1.5 armed (6K/5.9K at top of MOV + zero stock modes removed + live HDMI + fixed recording timers removed)");
                     runOnUiThread(() -> armedHeadline.setText("Safe to unplug USB-C"));
                     setUiState(UiState.ARMED, "Armed");
                 } else {
-                    appendLog("ok: restored 100% stock");
+                    appendLog("ok: RAM patches removed");
                     setUiState(UiState.READY, "Ready");
                 }
             } catch (Exception e) {

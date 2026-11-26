@@ -4,9 +4,9 @@ This document catalogs every video/camera feature accessible via the **volatile 
 workflow over Panasonic temporary Service Mode USB (`04DA:2370`, `op 0x9B` read / `op 0x9C` write).
 
 > **Safety & Persistence Model:**
-> - **0% flash / EEPROM / bootloader writes** — zero brick risk.
+> - **Volatile RAM only.** The v1.5 installer writes its patches to volatile RAM.
 > - **Survives Power-Switch OFF/ON (suspend-to-RAM)** when master ROM-in-RAM templates (`0x8708xxxx`) are patched alongside the active RAM tables (`0x08A6xxxx` / `0x86F1xxxx` / `0x8682xxxx`).
-> - **Battery removal (cold boot)** instantly restores 100% factory stock firmware.
+> - **A cold boot clears the RAM patches.** The camera may remember the selected mode.
 > - **Strict target:** Original Lumix DC-S5 (Mark I, `MC801`), stock **Firmware 2.9** only.
 
 ---
@@ -19,8 +19,8 @@ workflow over Panasonic temporary Service Mode USB (`04DA:2370`, `op 0x9B` read 
 | **5.9K 16:9 23.98p MOV** | `qid 0x00F1` | `5888×3312` (full-frame 16:9), 23.98p, HEVC Main 10 4:2:0 10-bit, 200 Mbps. Appears natively in **Rec Quality (MOV)**, updates live-view `5.9K` badge, **no 30-min cap**. |
 | **5.9K 16:9 29.97p MOV** | `qid 0x00F4` | `5888×3312`, 29.97p, HEVC Main 10 4:2:0 10-bit, ~194 Mbps (native MOV menu in **v1.3**, PCM audio, timecode, **no 30-min cap**). |
 | **5.9K 16:9 25.00p MOV (PAL)** | `qid 0x00F3` | `5888×3312`, 25.00p (50.00 Hz PAL), HEVC Main 10 4:2:0 10-bit, 200 Mbps (native PAL MOV menu in **v1.3**, **no 30-min cap**). |
-| **Unlimited Recording (All Limited Modes)** | `0x868261B6: 0x4628 → 0x2000` | Removes both the **30-minute (`0x708`)** and **15-minute (`0x384`)** artificial recording caps across all 4K, C4K, 4K-A 10-bit, 60p, and VFR modes. Card capacity and hardware thermal protection remain intact. |
-| **Power-Switch Persistence (Suspend-to-RAM)** | `0x87089614`–`0x8708962C` | Patching the master ROM-in-RAM MOV template alongside `0x86F15E30`, `0x08A68B6C`, `0x08A6836C`, and `0x868261B6` keeps all unlocked modes + unlimited recording active across Power-Switch OFF/ON until battery removal. |
+| **Fixed Recording Timer Removal** | `0x868261B6: 0x4628 → 0x2000` | Removes both the **30-minute (`0x708`)** and **15-minute (`0x384`)** fixed recording timers across 4K, C4K, 4K-A 10-bit, 60p, and VFR modes. Card capacity and hardware thermal protection remain intact. |
+| **Power-Switch Persistence (Suspend-to-RAM)** | `0x87089614`–`0x8708962C` | Patching the master ROM-in-RAM MOV template alongside `0x86F15E30`, `0x08A68B6C`, `0x08A6836C`, and `0x868261B6` keeps all unlocked modes and fixed recording timer removal active across Power-Switch OFF/ON until battery removal. |
 
 ### How Native Rec Quality Menu Injection Works
 Any MOV quality ID present in the live movie-quality table (`0x08AA45E0`) can be exposed natively
@@ -77,4 +77,4 @@ These have not been live-tested yet but sit in the same writable RTOS RAM archit
 - **Full-frame uncropped 4K 60p or 6K 60p:** Limited by the IMX410 24 MP sensor's readout speed (60p requires APS-C crop).
 - **Internal ProRes / Internal RAW (BRAW):** No ProRes or RAW hardware encoder on the S5's Venus Engine.
 - **Phase-Detect Autofocus (PDAF):** Hardware sensor limitation (S5 uses DFD contrast AF only).
-- **Permanent Flash Persistence:** `.UPD` enforces ECDSA P-256 (`0x868C08C6`); `ROM BACKUP` (`0x8785CE42`) is EEPROM-only. Volatile RAM + suspend-to-RAM survival is the safe, zero-brick-risk path.
+- **Permanent Flash Persistence:** `.UPD` enforces ECDSA P-256 (`0x868C08C6`); `ROM BACKUP` (`0x8785CE42`) is EEPROM-only. v1.5 uses volatile RAM patches that clear on a cold boot.
