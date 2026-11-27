@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>S5 Unlocker v1.6</title>
+<title>S5 Unlocker v1.7</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 108 108'%3E%3Crect width='108' height='108' rx='24' fill='%23151515'/%3E%3Crect x='24' y='34' width='60' height='40' rx='3' fill='none' stroke='%23C1C1C1' stroke-width='4'/%3E%3Ccircle cx='54' cy='54' r='6.5' fill='%23B8212F'/%3E%3C/svg%3E">
 <style>
-  /* BACKYARD family interface language — S5 Unlocker v1.6 (DIETER Draft 1) */
+  /* BACKYARD family interface language — S5 Unlocker v1.7 */
   :root {
     --board:   #0B0B0B;
     --ground:  #0E0E0E;
@@ -79,7 +79,6 @@
   .stage { flex: 1; display: flex; flex-direction: column; }
   .hidden { display: none !important; }
 
-  /* Centered hero blocks */
   .hero {
     display: flex;
     flex-direction: column;
@@ -102,10 +101,9 @@
   }
   .hero-sub.bright { color: var(--light); font-size: 14px; }
 
-  /* Top summary surface band (Screen 02 / 03) */
   .surface-band {
     background: var(--surface);
-    padding: 24px;
+    padding: 22px 24px;
   }
   .surface-band h2 {
     margin: 0 0 8px;
@@ -126,16 +124,14 @@
     color: var(--dim);
   }
 
-  /* Body content container */
-  .body-pad { padding: 20px 24px 16px; }
+  .body-pad { padding: 18px 24px 16px; }
   .section-label {
-    margin: 0 0 12px;
+    margin: 0 0 10px;
     font-size: 14px;
     font-weight: 500;
     color: var(--needle);
   }
 
-  /* Step cards */
   .step-card {
     background: var(--surface);
     border-radius: 12px;
@@ -177,7 +173,6 @@
     line-height: 1.4;
   }
 
-  /* Simple list card (Screen 05) */
   .list-card {
     background: var(--surface);
     border-radius: 12px;
@@ -199,7 +194,6 @@
     color: var(--light);
   }
 
-  /* Menu path highlight card (Screen 04) */
   .menu-path-card {
     background: var(--surface);
     border-radius: 12px;
@@ -220,7 +214,7 @@
     color: var(--dim);
   }
   .center-note {
-    margin: 0 24px 20px;
+    margin: 0 24px 18px;
     font-size: 13px;
     line-height: 1.5;
     color: var(--dim);
@@ -228,13 +222,12 @@
   }
   .center-note strong { color: var(--light); font-weight: 500; }
 
-  /* Radio mode cards (Screen 02 / 03) */
   .mode-card {
     width: 100%;
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 15px 16px;
+    padding: 14px 16px;
     background: var(--surface);
     border: 1px solid var(--hover);
     border-radius: 10px;
@@ -302,10 +295,36 @@
   .mode-card.active-ram .mode-card-desc,
   .mode-card.active-perm .mode-card-desc { color: var(--light); }
 
-  /* Plain-English risk & uninstall box */
+  /* Optional Cinema Mode card */
+  .extra-card {
+    margin-top: 14px;
+    padding: 13px 15px;
+    background: var(--surface);
+    border: 1px solid var(--hover);
+    border-radius: 10px;
+    text-align: left;
+  }
+  .extra-card.checked {
+    border-color: var(--edge);
+    background: var(--panel);
+  }
+  .extra-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .extra-desc {
+    margin: 7px 0 0 27px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--dim);
+  }
+  .extra-card.checked .extra-desc { color: var(--light); }
+
   .risk-box {
-    margin-top: 16px;
-    padding: 16px;
+    margin-top: 14px;
+    padding: 15px;
     background: var(--well);
     border: 1px solid var(--open);
     border-radius: 10px;
@@ -319,7 +338,7 @@
     color: var(--needle);
   }
   .risk-copy {
-    margin: 0 0 14px;
+    margin: 0 0 12px;
     font-size: 12px;
     line-height: 1.5;
     color: var(--light);
@@ -344,9 +363,8 @@
     cursor: pointer;
   }
 
-  /* Actions */
   .actions { padding: 0 24px 16px; text-align: center; }
-  .body-actions { margin-top: 16px; text-align: center; }
+  .body-actions { margin-top: 14px; text-align: center; }
   button {
     width: 100%;
     border: none;
@@ -389,12 +407,6 @@
     color: var(--dim);
     text-align: center;
   }
-  .footnote {
-    margin: 14px 0 0;
-    font-size: 11px;
-    color: var(--dim);
-    text-align: center;
-  }
   .app-footer {
     background: var(--panel);
     border-top: 1px solid var(--hover);
@@ -403,7 +415,6 @@
     color: var(--dim);
     text-align: center;
   }
-  .error-note { color: #e27882; }
 
   .progress-wrap {
     margin-top: 12px;
@@ -419,8 +430,7 @@
     transition: width 0.1s linear;
   }
 
-  /* Collapsed technical log */
-  .log-bar { padding: 8px 24px 20px; margin-top: auto; }
+  .log-bar { padding: 8px 24px 16px; margin-top: auto; }
   .log-toggle {
     width: 100%;
     background: var(--well);
@@ -506,7 +516,7 @@
       </div>
     </section>
 
-    <!-- 02 & 03 · Choose (Temporary default / Permanent opt-in) -->
+    <!-- 02 & 03 · Choose (Temporary default / Permanent opt-in + Optional Cinema Mode) -->
     <section id="viewReady" class="stage hidden">
       <div class="surface-band">
         <h2 id="readyHeadline">Your S5 is ready</h2>
@@ -539,6 +549,18 @@
               <div class="mode-card-desc">Saves to camera memory so it stays installed.</div>
             </div>
           </button>
+        </div>
+
+        <!-- Optional Cinema Mode (Zero V-Log NR & Sharpening) -->
+        <div id="cinemaCard" class="extra-card">
+          <div class="extra-top">
+            <label class="ack-row" for="optCinemaMode" style="flex:1;">
+              <input id="optCinemaMode" type="checkbox" autocomplete="off">
+              <span>Cinema Mode (Zero V-Log NR &amp; Sharpening)</span>
+            </label>
+            <span class="mode-card-tag">OPTIONAL</span>
+          </div>
+          <p class="extra-desc">Sets V-Log sharpening and 2D/RAW noise reduction to true 0% when sliders are at 0 (turn sliders to +1 on-camera anytime for stock). Also turns off 3D temporal NR globally.</p>
         </div>
 
         <!-- Default: Temporary RAM panel -->
@@ -600,7 +622,7 @@
           <circle cx="64" cy="42" r="6" fill="#B8212F"/>
         </svg>
         <h2 id="ramArmedHeadline" class="hero-title">You&rsquo;re all set!</h2>
-        <p class="hero-sub bright">Safe to unplug your USB-C cable.</p>
+        <p id="ramArmedSub" class="hero-sub bright">Safe to unplug your USB-C cable.</p>
       </div>
 
       <div class="list-card">
@@ -612,6 +634,7 @@
         </ol>
       </div>
 
+      <p id="ramArmedCinemaNote" class="center-note hidden"><strong>Cinema Mode is active:</strong> keep V-Log Sharpness &amp; NR at 0 for true 0%, or raise to +1 for stock.</p>
       <p class="center-note">Taking the battery out returns your camera to normal.</p>
 
       <div class="actions">
@@ -659,12 +682,13 @@
         </label>
         <div class="body-actions" style="margin-top:14px;">
           <button id="btnUninstallFlash" class="btn-secondary" disabled>Uninstall permanent unlock</button>
+          <button id="btnChangePermOptions" class="btn-subtle">Change Cinema Mode setting&hellip;</button>
           <div id="armedProgWrap" class="progress-wrap hidden"><div id="armedProgBar" class="progress-bar"></div></div>
         </div>
       </div>
     </section>
 
-    <!-- Collapsible technical log (all hex/SHA/anchor telemetry lives here) -->
+    <!-- Collapsible technical log -->
     <div id="logBar" class="log-bar hidden">
       <button id="btnLogToggle" class="log-toggle" type="button">
         <span id="logBarTitle" class="log-toggle-title">Technical log</span>
@@ -688,7 +712,7 @@
   const HOOK_ADDR = 0x866930EA;
   const HOOK_STOCK = [0xF021, 0xFBF6], HOOK_PATCH = [0xF249, 0xDF89];
 
-  // Volatile RAM-only tables & patches (identical to public v1.5)
+  // Volatile RAM-only tables & patches (identical to public v1.5/v1.6)
   const NEW_NTSC_UI = 0x870DD200;
   const NEW_PAL_UI  = 0x870DD360;
   const NEW_NTSC_WL = 0x870DD440;
@@ -742,6 +766,25 @@
     [0x868261B6, 0x2000, 0x4628, 'unlimited_all'],
     [0x866ACC9C, 0xBF00, 0xD1E7, 'hdmi_live_6k_1'],
     [0x8664425C, 0xBF00, 0xD17B, 'hdmi_live_6k_2'],
+  ];
+
+  // Cinema Mode: 12 verified halfwords (John Druzbik — Raw-Lite V-Log, MC801 FW 2.9)
+  // Format: [addr, unlock_u16, stock_u16, name]
+  // - 11 halfwords zero V-Log sharpening & 2D/RAW NR at slider 0.0 (+0.5..+10.0 stays stock)
+  // - 1 atomic 16-bit halfword (0x86514FBC) bypasses hardware 3D temporal NR globally
+  const CINEMA_PATCHES = [
+    [0x86514FBC, 0xE006, 0xD006, 'yctdnr_hw_bypass'],
+    [0x8652DA84, 0x200B, 0x201D, 'vlog_main_yc_sharp'],
+    [0x867CD284, 0x200B, 0x201E, 'vlog_sec_edge_sharp'],
+    [0x865256B4, 0x2301, 0x4879, 'vlog_nr_55c6_0'],
+    [0x865256B6, 0xE7F9, 0xF24D, 'vlog_nr_55c6_1'],
+    [0x865256B8, 0xBF00, 0x433C, 'vlog_nr_55c6_2'],
+    [0x867C936A, 0x2001, 0x488B, 'vlog_nr_9332_0'],
+    [0x867C936C, 0xE0B5, 0xF64D, 'vlog_nr_9332_1'],
+    [0x867C936E, 0xBF00, 0x734E, 'vlog_nr_9332_2'],
+    [0x86524AA8, 0x2001, 0x4891, 'vlog_nr_4572_0'],
+    [0x86524AAA, 0xE006, 0xF64E, 'vlog_nr_4572_1'],
+    [0x86524AAC, 0xBF00, 0x61F4, 'vlog_nr_4572_2'],
   ];
 
   // 47 static MC801 FW 2.9 anchors
@@ -805,13 +848,28 @@
     0x2000,0x070F,0x2000,0x870F
   ];
 
-  // Frozen 2048-byte Option B postboot2 v2.0 image (128 KiB padded SHA-256: bbb37062...)
+  // Frozen 2048-byte Option B postboot2 v2.0 base image (128 KiB padded SHA-256: bbb37062...)
   const OPTB_B64 = "TE9BRABwPAsAcDwL6DBpBvAwaQYgcG4HKHBuB//////f+ADwKXBuB/C0JkgmSSdKAWBCYDCkIGgAKAjQA2hhaItCAtCiaJNCKdEMNPPnN6QgaAAoCNADiGFoi0IC0KJok0Ic0Qw08+cZSBpJGkoDaAtgBDAEMQQ6+dEfpCBoACgD0KJoAmAMNPjnKKQgaAAoA9CiaAKADDT45wAlAOAPTQ9MASAgYGVgDkuYRw5LmEfwvAAgDUuYRwAoAdEMSxhHDEsYR+gwaYYAICHw9vuIsQBybocA0g2HEAMAAAAW1brgd26Hd/9ABicAQQbbSGsGFTFpBvEwaQY0LEaGMF7xBkDUDYdALEaGml7xBsDUDYe4MWmGbIumCADSDYfUMWmGhIymCGDTDYcAAAAAtmGChihGAAAAIAAAnMxqhufRAAAAvwAAXEJkhnvRAAAAvwAAAAAAAP/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////tAAEBAAAAAO2AAQEAAAAA9AABAQAAAAD0gAEBAAAAAPEAAQEAAAAA8YABAQAAAACSAAEBAAAAAJKAAQEAAAAAlAABAQAAAACUgAEBAAAAAJUAAQEAAAAAlYABAQAAAACWAAEBAAAAAJaAAQEAAAAAlwABAQAAAACXgAEBAAAAAJsAAQEAAAAAm4ABAQAAAACfAAEBAAAAAJ+AAQEAAAAAoQABAQAAAAChgAEBAAAAAKUAAQEAAAAApYABAQAAAACoAAEBAAAAAKiAAQEAAAAApwABAQAAAACngAEBAAAAAL4AAQEAAAAAvoABAQAAAADAAAEBAAAAAMCAAQEAAAAAzAABAQAAAADMgAEBAAAAAM4AAQEAAAAAzoABAQAAAADRAAEBAAAAANGAAQEAAAAA0gABAQAAAADSgAEBAAAAAP//AAAAAAAA////////////////////////////////8wABAQAAAADzgAEBAAAAAJMAAQEAAAAAk4ABAQAAAAD+AAEBAAAAAP6AAQEAAAAA/wABAQAAAAD/gAEBAAAAAJwAAQEAAAAAnIABAQAAAACgAAEBAAAAAKCAAQEAAAAAogABAQAAAACigAEBAAAAAKYAAQEAAAAApoABAQAAAAC/AAEBAAAAAL+AAQEAAAAAwQABAQAAAADBgAEBAAAAAM0AAQEAAAAAzYABAQAAAADPAAEBAAAAAM+AAQEAAAAA//8AAAAAAAD////////////////////////////////tAO2A9AD0gPEA8YAhACGAIwAjgCYAJoAcAByAHwAfgPkA+YD7APuA/QD9gIsAi4CSAJKAlACUgJUAlYCWAJaAlwCXgJ8An4ClAKWApwCngJsAm4ChAKGAqACogL4AvoDAAMCAzADMgM4AzoDRANGA0gDSgP////////////////MA84AiACKAJAAkgB0AHYD6APqA/AD8gIwAjICTAJOA/wD/gP4A/oCgAKCApgCmgJwAnICiAKKAvwC/gMEAwYDNAM2AzwDPgP//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////AQAAAAAAAAAAAAAAAAAAAP////////////////////8=";
 
   function decodeB64(s) {
     const bin = atob(s), out = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
     return out;
+  }
+  function buildPostboot2Image(includeCinema) {
+    const img = decodeB64(OPTB_B64);
+    if (!includeCinema) return img;
+    const dv = new DataView(img.buffer);
+    if (dv.getUint32(0x150, true) !== 0) throw new Error('unexpected postboot2 table terminator');
+    let off = 0x150;
+    for (const [addr, unl, stk] of CINEMA_PATCHES) {
+      dv.setUint32(off, addr >>> 0, true);
+      dv.setUint32(off + 4, stk >>> 0, true);
+      dv.setUint32(off + 8, unl >>> 0, true);
+      off += 12;
+    }
+    dv.setUint32(off, 0, true); // NULL terminator at +0x1E0
+    return img;
   }
   function makeStockPb2() {
     const out = new Uint8Array(2048); out.fill(0xFF);
@@ -821,7 +879,7 @@
     return out;
   }
 
-  // Pure-JS FIPS 180-4 SHA-256 (works over file:// where crypto.subtle may be unavailable)
+  // Pure-JS FIPS 180-4 SHA-256
   const SHA256_K = new Uint32Array([
     0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,
     0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,
@@ -876,9 +934,10 @@
 
   let dev = null, epOut = 1, epIn = 2, busy = false, logExpanded = false;
   let installMode = 'ram'; // 'ram' (default) | 'persistent' (opt-in)
-  let pb2State = 'stock';  // 'stock' | 'installed' | 'upgrade'
+  let pb2State = 'stock';  // 'stock' | 'installed_standard' | 'installed_cinema' | 'upgrade'
   let ramArmed = false;
-  let pendingImg = null, pendingAction = '';
+  let cinemaArmed = false;
+  let pendingImg = null, pendingAction = '', pendingCinema = false;
 
   const $ = id => document.getElementById(id);
   const hex4 = v => '0x' + (v >>> 0).toString(16).toUpperCase().padStart(4, '0');
@@ -898,6 +957,14 @@
     $('ackInstallFlash').checked = false;
     $('ackUninstallFlash').checked = false;
   }
+  function syncCinemaCard() {
+    const on = $('optCinemaMode').checked;
+    $('cinemaCard').classList.toggle('checked', on);
+    $('btnUnlockRam').textContent = on ? 'Unlock camera + Cinema Mode' : 'Unlock camera';
+    const isPermUpdate = (pb2State === 'upgrade' || pb2State === 'installed_standard' || pb2State === 'installed_cinema');
+    const verb = isPermUpdate ? 'Update' : 'Install';
+    $('btnInstallFlash').textContent = on ? `${verb} permanent + Cinema Mode` : `${verb} permanent unlock`;
+  }
   function setInstallMode(mode) {
     installMode = (mode === 'persistent') ? 'persistent' : 'ram';
     clearFlashAcks();
@@ -910,14 +977,18 @@
     $('panelPersistent').classList.toggle('hidden', !isP);
     syncButtons();
   }
-  function setPersistentScreenMode(isFreshInstall) {
+  function setPersistentScreenMode(isFreshInstall, withCinema) {
     if (isFreshInstall) {
-      $('armedHeadline').textContent = 'Installed \u2014 2 quick steps left';
-      $('armedSub').textContent = 'Follow both steps below so 6K appears on your camera.';
+      $('armedHeadline').textContent = withCinema ? 'Installed (Cinema Mode) \u2014 2 steps left' : 'Installed \u2014 2 quick steps left';
+      $('armedSub').textContent = withCinema
+        ? 'Follow both steps below. Keep V-Log sliders at 0 for true 0% NR & sharpening (+1 for stock).'
+        : 'Follow both steps below so 6K appears on your camera.';
       $('freshInstallSteps').classList.remove('hidden');
     } else {
-      $('armedHeadline').textContent = 'Permanent unlock is active';
-      $('armedSub').textContent = 'Stays installed across battery swaps \u2014 open Rec Quality once after each battery swap.';
+      $('armedHeadline').textContent = withCinema ? 'Permanent + Cinema Mode is active' : 'Permanent unlock is active';
+      $('armedSub').textContent = withCinema
+        ? 'V-Log 0 = true 0% NR & sharpening (+1 = stock). Open Rec Quality once after each battery swap.'
+        : 'Stays installed across battery swaps \u2014 open Rec Quality once after each battery swap.';
       $('freshInstallSteps').classList.add('hidden');
     }
   }
@@ -932,19 +1003,16 @@
 
     if (next === 'persistent_armed') {
       setHeaderStatus(headerText || 'Installed', 'armed');
-      $('logBarTitle').textContent = 'Technical log';
     } else if (next === 'ram_armed') {
       setHeaderStatus(headerText || 'Unlocked', 'armed');
-      $('logBarTitle').textContent = 'Technical log';
     } else if (next === 'commit') {
       setHeaderStatus(headerText || 'Step 1 of 2', 'armed');
-      $('logBarTitle').textContent = 'Technical log';
     } else if (next === 'ready') {
       setHeaderStatus(headerText || 'Connected', 'ready');
-      $('logBarTitle').textContent = 'Technical log';
     } else {
       setHeaderStatus(headerText || 'Waiting', '');
     }
+    syncCinemaCard();
     syncButtons();
   }
   function syncButtons() {
@@ -953,6 +1021,7 @@
     $('btnCompat').disabled = busy;
     $('tabModeRam').disabled = busy;
     $('tabModePersistent').disabled = busy;
+    $('optCinemaMode').disabled = busy;
     $('btnUnlockRam').disabled = !ok;
     $('btnInstallFlash').disabled = !ok || !$('ackInstallFlash').checked;
     $('btnRestoreRam').disabled = !ok;
@@ -960,6 +1029,7 @@
     $('btnVerify').disabled = !ok;
     $('btnCancelCommit').disabled = !ok;
     $('btnUninstallFlash').disabled = !ok || !$('ackUninstallFlash').checked;
+    $('btnChangePermOptions').disabled = !ok;
     $('readyFlashNote').textContent = $('ackInstallFlash').checked
       ? 'Ready to start \u2014 keep USB plugged in'
       : 'Check the box above to continue';
@@ -1075,6 +1145,16 @@
     appendLog(`signatures verified (MC801 2.9 \u00B7 ${SIG_CHECKS.length} anchors)`);
   }
 
+  async function verifyCinemaAnchors() {
+    for (const [addr, unl, stk, name] of CINEMA_PATCHES) {
+      const v = await readHalf(addr);
+      if (v !== stk && v !== unl) {
+        throw new Error(`Cinema Mode anchor mismatch ${name} (${hex8(addr)}=${hex4(v)})`);
+      }
+    }
+    appendLog(`Cinema Mode anchors verified (${CINEMA_PATCHES.length}/12)`);
+  }
+
   async function openDevice(d) {
     dev = d;
     if (!dev.opened) await dev.open();
@@ -1087,12 +1167,27 @@
     appendLog(`connected 04DA:2370 (OUT=${epOut} IN=${epIn})`);
   }
 
-  async function detectRamArmed() {
+  async function detectRamState() {
     const capWord = await readHalf(0x868261B6);
     const ptrNtscUiLo = await readHalf(0x866931B8);
     const ptrPalUiLo = await readHalf(0x866931D4);
     const hdmi1 = await readHalf(0x866ACC9C);
-    return (capWord === 0x2000 && ptrNtscUiLo === 0xD200 && ptrPalUiLo === 0xD360 && hdmi1 === 0xBF00);
+    const ram = (capWord === 0x2000 && ptrNtscUiLo === 0xD200 && ptrPalUiLo === 0xD360 && hdmi1 === 0xBF00);
+    const cin0 = await readHalf(CINEMA_PATCHES[0][0]);
+    const cin1 = await readHalf(CINEMA_PATCHES[1][0]);
+    const cinema = (cin0 === CINEMA_PATCHES[0][1] && cin1 === CINEMA_PATCHES[1][1]);
+    return { ram, cinema };
+  }
+
+  function matchesPb2Image(buf, img) {
+    for (let i = 0; i < 2048; i++) {
+      if (i >= 0x7E0 && i < 0x7F0) continue; // ignore runtime telemetry block
+      if (buf[i] !== img[i]) return false;
+    }
+    for (let i = 2048; i < PB2_SIZE; i++) {
+      if (buf[i] !== 0xFF) return false;
+    }
+    return true;
   }
 
   async function verifyPostboot2State() {
@@ -1103,23 +1198,18 @@
       appendLog(`postboot2 verified 100% stock (SHA-256: ${digest.slice(0, 16)}...)`);
       return 'stock';
     }
-    const expImg = decodeB64(OPTB_B64);
-    let expMatch = true;
-    for (let i = 0; i < 2048; i++) {
-      if (i >= 0x7E0 && i < 0x7F0) continue; // ignore runtime telemetry block
-      if (buf[i] !== expImg[i]) { expMatch = false; break; }
+    const stdImg = buildPostboot2Image(false);
+    if (matchesPb2Image(buf, stdImg)) {
+      appendLog('postboot2 verified Standard Option B installed (2 KiB payload + 126 KiB empty)');
+      return 'installed_standard';
     }
-    if (expMatch) {
-      for (let i = 2048; i < PB2_SIZE; i++) {
-        if (buf[i] !== 0xFF) { expMatch = false; break; }
-      }
-    }
-    if (expMatch) {
-      appendLog('postboot2 verified Option B installed (2 KiB payload + 126 KiB empty)');
-      return 'installed';
+    const cinImg = buildPostboot2Image(true);
+    if (matchesPb2Image(buf, cinImg)) {
+      appendLog('postboot2 verified Option B + Cinema Mode installed (2 KiB payload + 126 KiB empty)');
+      return 'installed_cinema';
     }
     let hdrMatch = true;
-    for (let i = 0; i < 0x28; i++) { if (buf[i] !== expImg[i]) { hdrMatch = false; break; } }
+    for (let i = 0; i < 0x28; i++) { if (buf[i] !== stdImg[i]) { hdrMatch = false; break; } }
     if (hdrMatch) {
       for (let i = 2048; i < PB2_SIZE; i++) { if (buf[i] !== 0xFF) { hdrMatch = false; break; } }
     }
@@ -1136,20 +1226,24 @@
     $('readyUpgradeNote').textContent = upgrade
       ? 'An older permanent unlock was detected — you can upgrade it below.'
       : 'All your factory video modes stay untouched.';
-    $('btnInstallFlash').textContent = upgrade ? 'Upgrade permanent unlock' : 'Install permanent unlock';
+    syncCinemaCard();
   }
 
   async function inspectAndRoute(readOnlyOnly) {
     await verifySignatures();
-    ramArmed = await detectRamArmed();
+    const st = await detectRamState();
+    ramArmed = st.ram;
+    cinemaArmed = st.cinema;
     pb2State = await verifyPostboot2State();
 
     if (readOnlyOnly) {
-      const stateText = pb2State === 'installed'
-        ? 'Permanent unlock is already installed.'
-        : ramArmed
-          ? 'Temporary unlock is currently active.'
-          : 'Factory stock and ready to unlock.';
+      const stateText = pb2State === 'installed_cinema'
+        ? 'Permanent unlock + Cinema Mode is installed.'
+        : pb2State === 'installed_standard'
+          ? 'Permanent unlock is already installed.'
+          : ramArmed
+            ? (cinemaArmed ? 'Temporary unlock + Cinema Mode is active.' : 'Temporary unlock is currently active.')
+            : 'Factory stock and ready to unlock.';
       $('waitingHint').textContent = `Compatible Lumix S5 (FW 2.9) \u2014 ${stateText}`;
       $('logBar').classList.remove('hidden');
       if (!logExpanded) toggleLog();
@@ -1157,20 +1251,25 @@
     }
 
     updateReadyLabels();
-    if (pb2State === 'installed') {
-      setPersistentScreenMode(false);
+    if (pb2State === 'installed_standard' || pb2State === 'installed_cinema') {
+      const hasCin = (pb2State === 'installed_cinema');
+      $('optCinemaMode').checked = hasCin;
+      setPersistentScreenMode(false, hasCin);
       setUiState('persistent_armed', 'Installed');
     } else if (ramArmed) {
-      $('ramArmedHeadline').textContent = 'Temporary unlock is active';
+      $('ramArmedHeadline').textContent = cinemaArmed ? 'Temporary + Cinema Mode active' : 'Temporary unlock is active';
+      $('ramArmedCinemaNote').classList.toggle('hidden', !cinemaArmed);
       setUiState('ram_armed', 'Unlocked');
     } else {
-      setInstallMode('ram'); // Temporary unlock is always the default choice
+      $('optCinemaMode').checked = false;
+      setInstallMode('ram');
       setUiState('ready', 'Connected');
     }
   }
 
   async function applyRamUnlock(unlock) {
     if (busy || !dev?.opened) return;
+    const wantCinema = unlock ? $('optCinemaMode').checked : false;
     busy = true; syncButtons();
     const btn = unlock ? $('btnUnlockRam') : $('btnRestoreRam');
     const origTxt = btn.textContent;
@@ -1178,6 +1277,9 @@
     setHeaderStatus(unlock ? 'Unlocking' : 'Restoring', 'ready');
     try {
       await verifySignatures();
+      if (wantCinema || cinemaArmed) {
+        await verifyCinemaAnchors();
+      }
       if (unlock) {
         await writeUiList(NEW_NTSC_UI, NTSC_UI_NEW, 0x0101);
         await writeUiList(NEW_PAL_UI,  PAL_UI_NEW,  0x0101);
@@ -1192,6 +1294,16 @@
         const rb = await readHalf(addr);
         if (rb !== target) {
           throw new Error(`RAM verify mismatch ${name} (${hex8(addr)}: got ${hex4(rb)}, want ${hex4(target)})`);
+        }
+      }
+      if (wantCinema || (!unlock && cinemaArmed)) {
+        for (const [addr, uVal, sVal, name] of CINEMA_PATCHES) {
+          const target = wantCinema ? uVal : sVal;
+          await writeHalf(addr, target);
+          const rb = await readHalf(addr);
+          if (rb !== target) {
+            throw new Error(`Cinema verify mismatch ${name} (${hex8(addr)}: got ${hex4(rb)}, want ${hex4(target)})`);
+          }
         }
       }
       const live0 = await readHalf(LIVE_UI_BASE);
@@ -1213,9 +1325,11 @@
         }
       }
       ramArmed = unlock;
+      cinemaArmed = wantCinema;
       if (unlock) {
-        appendLog('VERIFIED temporary RAM unlock armed (zero flash writes)');
-        $('ramArmedHeadline').textContent = 'You\u2019re all set!';
+        appendLog(`VERIFIED temporary RAM unlock${wantCinema ? ' + Cinema Mode (12 halfwords)' : ''} armed (zero flash writes)`);
+        $('ramArmedHeadline').textContent = wantCinema ? 'You\u2019re all set! (Cinema Mode)' : 'You\u2019re all set!';
+        $('ramArmedCinemaNote').classList.toggle('hidden', !wantCinema);
         setUiState('ram_armed', 'Unlocked');
       } else {
         appendLog('VERIFIED temporary RAM unlock removed (zero flash writes)');
@@ -1250,7 +1364,7 @@
     appendLog('trampoline detected — restored stock RAM instructions before staging');
   }
 
-  async function stageAndArm(img, actionName, progWrap, progBar, btnEl) {
+  async function stageAndArm(img, actionName, withCinema, progWrap, progBar, btnEl) {
     const acknowledgement = $(actionName === 'install' ? 'ackInstallFlash' : 'ackUninstallFlash');
     if (busy || !dev?.opened || !acknowledgement.checked) return;
     acknowledgement.checked = false;
@@ -1259,8 +1373,11 @@
     btnEl.textContent = 'Preparing\u2026';
     setProg(progWrap, progBar, 2);
     try {
+      if (actionName === 'install' && withCinema) {
+        await verifyCinemaAnchors();
+      }
       await prepareHookRegion();
-      appendLog(`staging 2048B (${actionName}) @ 0x870F0000...`);
+      appendLog(`staging 2048B (${actionName}${withCinema ? '+cinema' : ''}) @ 0x870F0000...`);
       for (let off = 0; off < 2048; off += 2) {
         const v = img[off] | (img[off + 1] << 8);
         await writeHalf(SRC_RAM + off, v);
@@ -1275,8 +1392,8 @@
       await writeHalf(HOOK_ADDR, HOOK_PATCH[0]);
       await writeHalf(HOOK_ADDR + 2, HOOK_PATCH[1]);
       setProg(progWrap, progBar, null);
-      pendingImg = img; pendingAction = actionName;
-      appendLog(`staged & armed (${actionName}) — open Menu -> Video -> Rec Quality once`);
+      pendingImg = img; pendingAction = actionName; pendingCinema = !!withCinema;
+      appendLog(`staged & armed (${actionName}${withCinema ? '+cinema' : ''}) — open Menu -> Video -> Rec Quality once`);
       setUiState('commit', 'Step 1 of 2');
     } catch (e) {
       appendLog('ERROR: ' + e.message);
@@ -1303,13 +1420,13 @@
       await disarmHookAndScratch();
       const wasInstall = (pendingAction === 'install');
       appendLog(`commit cancelled (${pendingAction || 'staged'}) — hook & scratchpad disarmed`);
-      pendingImg = null; pendingAction = '';
+      pendingImg = null; pendingAction = ''; pendingCinema = false;
       setProg('commitProgWrap', 'commitProgBar', null);
       if (wasInstall) {
         setInstallMode('persistent');
         setUiState('ready', 'Connected');
       } else {
-        setPersistentScreenMode(false);
+        setPersistentScreenMode(false, pb2State === 'installed_cinema');
         setUiState('persistent_armed', 'Installed');
       }
     } catch (e) {
@@ -1360,14 +1477,16 @@
       }
 
       const isInstall = (pendingAction === 'install');
-      appendLog(`VERIFIED 2048/2048 flash read-back bytes (${pendingAction}) & volatile hook restored`);
-      pendingImg = null; pendingAction = '';
+      const withCinema = pendingCinema;
+      appendLog(`VERIFIED 2048/2048 flash read-back bytes (${pendingAction}${withCinema ? '+cinema' : ''}) & volatile hook restored`);
+      pendingImg = null; pendingAction = ''; pendingCinema = false;
       if (isInstall) {
-        pb2State = 'installed';
-        setPersistentScreenMode(true);
+        pb2State = withCinema ? 'installed_cinema' : 'installed_standard';
+        setPersistentScreenMode(true, withCinema);
         setUiState('persistent_armed', 'Installed');
       } else {
         pb2State = 'stock';
+        $('optCinemaMode').checked = false;
         updateReadyLabels();
         setInstallMode('ram');
         $('readyHeadline').textContent = 'Factory stock restored!';
@@ -1411,6 +1530,7 @@
   $('btnCompat').onclick             = () => handleConnect(true);
   $('tabModeRam').onclick            = () => setInstallMode('ram');
   $('tabModePersistent').onclick     = () => setInstallMode('persistent');
+  $('optCinemaMode').onchange        = () => { syncCinemaCard(); syncButtons(); };
   $('btnUnlockRam').onclick          = () => applyRamUnlock(true);
   $('btnRestoreRam').onclick         = () => applyRamUnlock(false);
   $('btnSwitchToPersistent').onclick = () => {
@@ -1418,8 +1538,17 @@
     setInstallMode('persistent');
     setUiState('ready', 'Connected');
   };
-  $('btnInstallFlash').onclick       = () => stageAndArm(decodeB64(OPTB_B64), 'install', 'readyProgWrap', 'readyProgBar', $('btnInstallFlash'));
-  $('btnUninstallFlash').onclick     = () => stageAndArm(makeStockPb2(), 'uninstall', 'armedProgWrap', 'armedProgBar', $('btnUninstallFlash'));
+  $('btnChangePermOptions').onclick  = () => {
+    $('optCinemaMode').checked = (pb2State !== 'installed_cinema');
+    updateReadyLabels();
+    setInstallMode('persistent');
+    setUiState('ready', 'Connected');
+  };
+  $('btnInstallFlash').onclick       = () => {
+    const withCinema = $('optCinemaMode').checked;
+    return stageAndArm(buildPostboot2Image(withCinema), 'install', withCinema, 'readyProgWrap', 'readyProgBar', $('btnInstallFlash'));
+  };
+  $('btnUninstallFlash').onclick     = () => stageAndArm(makeStockPb2(), 'uninstall', false, 'armedProgWrap', 'armedProgBar', $('btnUninstallFlash'));
   $('ackInstallFlash').onchange      = syncButtons;
   $('ackUninstallFlash').onchange    = syncButtons;
   $('btnVerify').onclick             = verifyAndFinish;
@@ -1427,7 +1556,7 @@
 
   navigator.usb?.addEventListener('disconnect', e => {
     if (dev && e.device === dev) {
-      dev = null; pendingImg = null; pendingAction = '';
+      dev = null; pendingImg = null; pendingAction = ''; pendingCinema = false;
       setInstallMode('ram');
       setUiState('waiting', 'Waiting');
     }
