@@ -18,7 +18,7 @@ Chrome also offers **Just check if my camera is compatible** to verify your came
 
 > **Important warning for the opt-in permanent option:** Installing, updating, or uninstalling **Stay after battery swap** writes 2 KiB to internal camera memory. Use only on the original Lumix DC-S5 with firmware 2.9, keep your battery **above 50%**, and do not unplug USB until verification completes. If power cuts out or the write is interrupted, the camera may stop booting and require service. If you want zero flash risk, stick to the default **Temporary unlock**.
 
-## Cinema Mode (Optional · Credit: John Druzbik)
+## Cinema Mode (Optional)
 
 In stock firmware 2.9, setting V-Log **Sharpness = 0** and **Noise Reduction = 0** still applies ~25% secondary sharpening/coring, ~17% 2D spatial NR, ~25% pre-demosaic RAW NR, and hardware 3D temporal NR. **Cinema Mode** (unchecked by default; works in both Temporary and Permanent modes) removes that processing:
 
