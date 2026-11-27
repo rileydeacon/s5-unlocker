@@ -1,6 +1,7 @@
 *.keystore
 *.jks
 android/build/
+/android/S5Unlocker.apk
 .DS_Store
 *.bin
 *.UPD
