@@ -25,13 +25,13 @@ This document catalogs every video and camera feature investigated via the **vol
 
 ---
 
-## 2. Tested & Closed (Do Not Ship)
+## 2. Investigated Features Outside v1.5
 
-Every item below was investigated in the RTOS dumps and/or live-tested on the DC-S5 and confirmed not viable on stock FW 2.9:
+These notes summarize what was observed during investigation or testing on the original DC-S5 with firmware 2.9. Availability below refers to v1.5.
 
 | Feature | QID / Address | Finding |
 | :--- | :--- | :--- |
-| **PAL 6K 3:2 Open Gate 25p** | N/A | **Not available.** Stock FW 2.9 has no 6K 25p Open Gate encoder/sensor mode (even the S1H limits 6K 3:2 to 23.98p/24p). PAL users get **5.9K 16:9 25p (`0x00F3`)** in v1.5 instead. |
+| **PAL 6K 3:2 Open Gate 25p** | N/A | **Outside the v1.5 feature set.** At 50.00 Hz (PAL), v1.5 adds **5.9K 16:9 at 25p (`0x00F3`)**. |
 | **5.4K 3:2 Open Gate 25p / 29.97p** | `0x00EF` / `0x00F0` | **Excluded from v1.5.** Recording stalled during testing. |
 | **True 24.00p Cinema (6K / 5.9K)** | `0x00EE` / `0x00F2` | **Excluded from v1.5.** Recording stalled during testing. |
 | **4K 400 Mbps 4:2:2 10-bit ALL-I** | `0x0098` | **Refuses to record.** Throws *"cannot record due to incompatible format"* and locks the Rec Quality menu until `Menu → Setup → Reset → Reset Rec Settings`. |
@@ -47,9 +47,9 @@ Every item below was investigated in the RTOS dumps and/or live-tested on the DC
 
 ---
 
-## 4. Hardware-Limited (Cannot Be Unlocked by Software)
+## 4. Other Features Outside v1.5
 
 - **Full-frame uncropped 4K 60p or 6K 60p:** Limited by the IMX410 24 MP sensor's physical readout speed (60p requires APS-C crop; 4K 60p 10-bit APS-C is already stock).
 - **Internal ProRes / Internal RAW (BRAW):** No ProRes or RAW hardware encoder on the S5's Venus Engine.
 - **Phase-Detect Autofocus (PDAF):** Physical sensor limitation (S5 uses DFD contrast AF only).
-- **Permanent Flash Persistence:** `.UPD` enforces ECDSA P-256 (`0x868C08C6`); `ROM BACKUP` (`0x8785CE42`) is EEPROM-only; no SD-card boot autoloader exists. Volatile RAM + suspend-to-RAM survival avoids flash writes and clears on cold boot.
+- **Persistence across battery swaps:** v1.5 applies its patches in volatile RAM. A cold boot clears them. Reapply the unlock after a battery swap.

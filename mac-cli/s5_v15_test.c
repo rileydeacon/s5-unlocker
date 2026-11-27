@@ -3,7 +3,7 @@
  *   - 6K Open Gate 23.98p, 5.9K 29.97p, 5.9K 23.98p at the VERY TOP of NTSC MOV menu
  *   - 5.9K 25.00p at the VERY TOP of PAL MOV menu
  *   - ZERO stock modes removed (all 17 NTSC + 11 PAL stock MOV modes 100% preserved!)
- *   - Unlimited Recording + Live HDMI Output during 6K/5.9K recording
+ *   - Fixed recording timers removed + live HDMI output during 6K/5.9K recording
  *   - 100% volatile RAM only.
  */
 #include <CoreFoundation/CoreFoundation.h>
@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
             err |= write_ui_list(usb, outP, inP, LIVE_UI_BASE, PAL_UI_NEW,  24,  0x0104u);
         }
         if (err) { fprintf(stderr, "enable failed.\n"); rc = 1; }
-        else printf("OK: v1.5 ARMED! 6K/5.9K at VERY TOP of MOV menu + ZERO stock modes removed + Live HDMI + Unlimited Rec!\n");
+        else printf("OK: v1.5 armed. Unlocked modes appear at the top of MOV Rec Quality. Fixed recording timers removed.\n");
     } else if (!strcmp(mode, "restore")) {
         int err = 0;
         err |= write_u32(usb, outP, inP, PTR_NTSC_WL, 0x06F15E30u);

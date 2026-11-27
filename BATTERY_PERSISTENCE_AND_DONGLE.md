@@ -1,30 +1,26 @@
 # Battery Swaps, Persistence & the \$5 USB-C Pocket Dongle
 
-The most common question about **S5 Unlocker** is: *"Can you make it permanent so it survives a battery swap?"*
-
-Here is the honest technical answer, followed by three practical, volatile-RAM ways to shoot all day without a phone or laptop.
+S5 Unlocker v1.5 applies its patches in RAM. A battery swap clears them, so reapply the unlock afterward. This guide covers power options and a proposed USB dongle that would reapply the RAM patches.
 
 ---
 
-## Why S5 Unlocker Does Not Write to Flash
+## What a Battery Swap Clears
 
-1. **Volatile RAM Only:** The v1.5 installer writes its patches to volatile RAM rather than internal NAND flash or the bootloader. A cold boot clears those patches. Experimental recording modes can fail, so test them before relying on them for a shoot.
-2. **Cryptographic Signing:** Panasonic `.UPD` firmware updates are encrypted and protected by **ECDSA P-256** signatures, and a full scan of the DC-S5 RTOS confirmed there is **no Canon `BOOTDISK`-style SD-card autoloader**.
-3. **Cold-Boot Reset:** Staying in volatile DRAM means removing the battery forces a cold boot that clears those patches.
+Removing and reinserting the battery clears the v1.5 RAM patches. The camera may remember the last recording quality. Select a factory recording mode before swapping batteries. If the menu is blank or stuck afterward, follow the [Rec Quality recovery steps](README.md#if-the-mov-rec-quality-menu-is-blank-or-stuck).
 
 ---
 
 ## Three Volatile-RAM Ways to Survive All-Day Shoots
 
 ### 1. Normal Power-Switch OFF/ON (Built-In)
-You do **not** need to re-unlock between takes or when turning the camera off. Flipping the power switch **OFF and back ON** keeps DRAM self-refreshed — **6K Open Gate, 5.9K, live HDMI in 6K/5.9K, and fixed recording timer removal all survive** as long as the battery door stays closed.
+A normal **OFF/ON** cycle can retain the unlock while the camera keeps power to RAM. A cold boot clears the patches.
 
 ### 2. All-Day Power Without Opening the Battery Door
 - **DMW-BGS5 Battery Grip (Best for Handheld):** Keep a charged battery in the camera body and hot-swap batteries in the grip all day. The body battery keeps volatile RAM alive continuously.
 - **USB-C PD Power Bank / V-Mount / Dummy Battery:** Top up the S5 over USB-C PD between takes, or power the camera continuously on a rig without opening the battery door.
 
 ### 3. Build a \$5–\$10 USB-C Keychain Auto-Arm Dongle (ESP32-S3 / RP2040)
-If you swap internal batteries frequently and do not want to pull out an Android phone or laptop, you can build a thumb-drive-sized **USB-C Host auto-arm dongle** that lives in your battery pouch:
+This is a design outline for a thumb-drive-sized **USB-C host dongle**. The v1.5 release ships an Android app and WebUSB installer. The dongle would reapply the same RAM patches after a battery swap.
 
 1. Swap your battery and boot the S5 in Service Mode (**PLAYBACK + AF/AE LOCK + Power ON**).
 2. Plug the dongle into the S5's USB-C port for ~2 seconds until its LED turns green.

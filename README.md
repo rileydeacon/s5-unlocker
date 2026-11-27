@@ -2,12 +2,12 @@
 
 Unlock native-menu **6K Open Gate**, **5.9K (NTSC and PAL)**, **live HDMI output during 6K/5.9K recording**, and **removal of the fixed recording timer** on the original **Panasonic Lumix DC-S5 (Mark I, Firmware 2.9)**.
 
-The v1.5 installer writes its patches to volatile RAM. A cold boot clears those patches. Experimental recording modes can fail, so test them before relying on them for a shoot.
-
 > [!CAUTION]
-> **Supported hardware and firmware only:** Original **Lumix DC-S5 (Mark I, `MC801`)** running stock **Firmware 2.9**.
+> **Original Lumix DC-S5 (Mark I, `MC801`) running stock firmware 2.9 only.** S5 Unlocker is an unofficial community project unaffiliated with Panasonic. The Lumix DC-S5D is unsupported, even if it passes a read-only check.
 >
-> Both installers check **25 firmware signatures** and stop before writing patches if any check fails. Use the WebUSB **Read-only compatibility check** to check those signatures. Evidence for the **Lumix DC-S5D** is preliminary and limited to read-only checks.
+> v1.5 applies temporary patches only to RAM. The patches can survive a normal power-switch cycle. Removing and reinserting the battery clears them, but the camera may remember the last recording quality. Select a factory recording mode before a battery swap. Test the unlocked modes with your own setup before relying on them for a shoot.
+
+The Chrome and Android installers check **25 firmware values** and stop before applying patches if any check fails. Chrome’s **Read-only compatibility check** checks those values without applying the unlock. The macOS command-line tool performs its own compatibility check.
 
 ---
 
@@ -19,27 +19,29 @@ The v1.5 installer writes its patches to volatile RAM. A cold boot clears those 
 | **5.9K 16:9 Full-Frame (NTSC)** | `5888×3312` · 23.98p (`0x00F1`) and 29.97p (`0x00F4`) · HEVC 10-bit 4:2:0 · 200 Mbps |
 | **5.9K 16:9 Full-Frame (PAL)** | `5888×3312` · 25.00p (`0x00F3`) · HEVC 10-bit 4:2:0 · 200 Mbps |
 | **Top-of-Menu Placement** | Unlocked modes appear at the **top** of **Menu → Video → Rec Quality (MOV)** |
-| **Zero Stock Modes Removed** | All 17 NTSC and 11 PAL stock MOV modes remain intact |
+| **Factory MOV Modes** | All 17 NTSC and 11 PAL factory MOV options remain available in Rec Quality |
 | **Live HDMI in 6K / 5.9K** | Fixes the stock behavior where external HDMI output blanks out during 6K/5.9K recording |
 | **Fixed Recording Timer Removal** | Removes the fixed 30-minute and 15-minute recording timers across 4K, C4K, 4K-A 10-bit, 60p, and VFR modes (thermal and card limits still apply) |
-| **Power-Switch Persistence** | Stays active across normal Power OFF/ON cycles until the battery is removed |
+| **Normal Power-Switch Cycles** | The RAM patches can stay active across a normal OFF/ON cycle while the battery remains in place |
 
-Works regardless of whether your camera is set to MP4, MOV, PAL, or NTSC when you run the unlock.
+At **50.00 Hz (PAL)**, v1.5 adds **5.9K 16:9 at 25p**. The v1.5 Open Gate option is **6K 3:2 at 23.98p** in the **59.94 Hz (NTSC)** system.
+
+You can run the unlock with MP4 or MOV selected. Switch to **MOV** to see the unlocked options for your current system frequency.
 
 ---
 
 ## Quick Start
 
-Before removing the battery, select a stock recording mode. The camera may remember the selected mode after a cold boot clears the RAM patches. Do not unplug the USB cable during the ~2-second arming step; if a write is ever interrupted or the camera behaves unexpectedly, remove and reinsert the battery to clear volatile RAM and return to 100% stock.
+Keep USB connected while the installer applies the patches. Wait for **Armed** before unplugging. If the process is interrupted or the camera behaves unexpectedly, wait for any card activity to finish, power the camera off, and remove and reinsert the battery to clear the patches. If **Rec Quality** is blank or stuck afterward, follow the [recovery steps](#if-the-mov-rec-quality-menu-is-blank-or-stuck).
 
 ### Option 1: Offline Android App (`S5Unlocker.apk`)
 
 Requires a USB-C Android phone with USB OTG. The app works offline and can open automatically when you connect the camera.
 
-1. Download `S5Unlocker.apk` (v1.5) from **Releases** (or build it from [`android/`](android/)) and install it on your phone.
+1. Download `S5Unlocker.apk` from the [v1.5 release](https://github.com/rileydeacon/s5-unlocker/releases/tag/v1.5) (or build it from [`android/`](android/)) and install it on your phone.
 2. On the DC-S5, hold **PLAYBACK + AF/AE LOCK** and flip Power **ON** to enter temporary service mode (`04DA:2370`).
-3. Connect the phone and camera with a USB-C cable. **S5 Unlocker** will open automatically.
-4. Tap **Unlock camera**, wait ~2 seconds for **Armed**, and unplug the cable.
+3. Connect the phone and camera with a USB-C data cable. Open **S5 Unlocker** if it doesn’t launch automatically.
+4. Tap **Unlock camera**, wait for **Armed**, then unplug the cable.
 5. Set **Rec File Format → MOV** and open **Menu → Video → Rec Quality**. Your 6K and 5.9K modes will be at the top of the list.
 
 ### Option 2: Chrome WebUSB (Mac, Windows, or Android)
@@ -47,9 +49,11 @@ Requires a USB-C Android phone with USB OTG. The app works offline and can open 
 Open the hosted web app at **https://rileydeacon.github.io/s5-unlocker/** (served from [`docs/index.html`](docs/index.html)) in **Google Chrome**.
 
 1. Boot the DC-S5 holding **PLAYBACK + AF/AE LOCK** and flip Power **ON**.
-2. Connect the camera to your computer or Android phone via USB-C.
-3. Click **Connect USB**, then click **Unlock camera**. Once it shows **Armed**, unplug and shoot.
-   - To check the firmware signatures without applying patches, click **Read-only compatibility check**. A successful result says **Signature check passed**.
+2. Connect the camera to your computer or Android phone with a USB-C data cable.
+3. Click **Connect USB**, then click **Unlock camera**. Wait for **Armed**, then unplug the cable.
+4. Set **Rec File Format → MOV** and open **Menu → Video → Rec Quality**. The unlocked modes appear at the top.
+
+To check the firmware values without applying the unlock, choose **Read-only compatibility check**. A pass means the expected values matched.
 
 *Note: iOS and iPadOS Safari do not support WebUSB.*
 
@@ -69,8 +73,8 @@ clang -O2 -framework IOKit -framework CoreFoundation mac-cli/s5_v15_test.c -o s5
 ## Important Notes & Troubleshooting
 
 ### Power Switch vs. Battery Pull
-- Flipping the power switch **OFF and ON** keeps the unlock active via DRAM self-refresh.
-- Opening the battery door or removing the battery forces a cold boot that clears the volatile RAM patches.
+- A normal **OFF/ON** cycle can keep the unlock active while the camera retains power to RAM.
+- Removing and reinserting the battery clears the RAM patches. The camera may still remember the selected recording quality.
 - For options that avoid re-arming during shoots (in-body USB-C charging, the DMW-BGS5 battery grip, or a \$5 USB-C keychain auto-arm dongle), see [`BATTERY_PERSISTENCE_AND_DONGLE.md`](BATTERY_PERSISTENCE_AND_DONGLE.md).
 
 ### If the MOV Rec Quality Menu Is Blank or Stuck
@@ -82,7 +86,7 @@ Try these recovery steps in order.
 - Run **Menu → Setup (Wrench) → Reset → Reset Rec Settings**. This resets recording settings and requires no USB connection.
 
 ### Thermal Protection
-Hardware thermal protection and card-capacity limits remain completely intact. Long 6K or 4K takes in warm environments will still display normal thermal warnings if the body overheats.
+S5 Unlocker removes the fixed recording timers. It does not intentionally modify thermal protection or card-capacity limits. Test long takes with your card and shooting conditions before relying on them.
 
 ---
 
@@ -102,13 +106,13 @@ v1.5 writes expanded NTSC and PAL MOV menu/whitelist tables into unused volatile
 | Recording Limit Getter | `0x868261B6` | `0x2000` (`movs r0, #0`) → `0x4628` | Removes fixed 30-minute and 15-minute recording timers |
 | 6K/5.9K HDMI Blanking Checks | `0x866ACC9C`, `0x8664425C` | `0xBF00` (`nop`) → `0xD1E7`, `0xD17B` | Keeps external HDMI feed live during 6K/5.9K recording |
 
-5.4K Open Gate, PAL 6K 25p Open Gate (FW 2.9 has no 6K 25p Open Gate mode; PAL users get 5.9K 16:9 25p instead), and true 24.00p are excluded from v1.5.
+5.4K Open Gate, 6K Open Gate at 25p, and true 24.00p are outside the v1.5 feature set.
 
 ---
 
 ## Scope, Issues & Feature Requests
 
-Please use **GitHub Issues** or **Discussions** for bug reports, S5/S5D compatibility reports, and feature requests.
+Please use **GitHub Issues** or **Discussions** for bug reports on the supported DC-S5 and for feature requests.
 
 - **In scope:** Original **Lumix DC-S5** (FW 2.9), volatile RAM patches only (cleared on cold boot).
 - **Out of scope:** Permanent flash or ROM writes, hardware-limited requests (uncropped 4K60, PDAF, internal RAW/ProRes), and other Lumix bodies I do not own (S5II/X, S9, GH7, S1II, G9). This project is MIT-licensed, so owners of other bodies are welcome to fork it and start with read-only checks.
@@ -117,6 +121,6 @@ Please use **GitHub Issues** or **Discussions** for bug reports, S5/S5D compatib
 
 ## Disclaimer & License
 
-**Unofficial community project — not affiliated with, endorsed by, or sponsored by Panasonic.** Provided as-is with no warranty; use at your own risk.
+Provided as-is with no warranty. Use at your own risk.
 
 MIT License — see [`LICENSE`](LICENSE). This release does not bundle a Panasonic firmware image.
