@@ -29,7 +29,7 @@ In stock firmware 2.9, setting V-Log **Sharpness = 0** and **Noise Reduction = 0
   - Disables the Venus Engine's hardware 3D temporal NR blending floor across **all** Photo Styles while Cinema Mode is active.
   - To re-enable 3D temporal NR, pull the battery (in Temporary mode) or plug back into Chrome and click **Change Cinema Mode setting…** / **Uninstall** (in Permanent mode).
  
-Thank you to John Druzbin (johndruzbik.com) for contributing to Cinema Mode development.
+Thank you to John Druzbik (johndruzbik.com) for contributing to Cinema Mode development.
 
 ## Internal recording modes
 
